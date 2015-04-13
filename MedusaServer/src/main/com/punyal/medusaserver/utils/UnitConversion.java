@@ -14,17 +14,13 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  ******************************************************************************/
-package com.punyal.medusaserver;
-
-import com.punyal.medusaserver.core.MedusaServer;
-
+package com.punyal.medusaserver.utils;
 
 /**
- * Medusa Server Main Class
+ * Class to Convert between different Unit/Object types
  */
-public class Main {
-    public static void main(String[] args) {
-        
-        MedusaServer medusa = new MedusaServer();
-    }
+public class UnitConversion {
+    // Prevent Initialization
+    private UnitConversion() {}
+    
 }

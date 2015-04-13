@@ -14,17 +14,13 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  ******************************************************************************/
-package com.punyal.medusaserver;
-
-import com.punyal.medusaserver.core.MedusaServer;
-
+package com.punyal.medusaserver.core.medusa;
 
 /**
- * Medusa Server Main Class
+ * Constants List
  */
-public class Main {
-    public static void main(String[] args) {
-        
-        MedusaServer medusa = new MedusaServer();
-    }
+public class MedusaConstants {
+    public static final int version = 0;
+    public static final int subVersion = 1;
+    
 }

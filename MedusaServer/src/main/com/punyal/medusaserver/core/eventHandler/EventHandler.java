@@ -14,17 +14,29 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  ******************************************************************************/
-package com.punyal.medusaserver;
+package com.punyal.medusaserver.core.eventHandler;
 
-import com.punyal.medusaserver.core.MedusaServer;
+public class EventHandler extends Thread {
+    private final EventMessage newEvent;
 
+    public EventHandler() {
+        this.newEvent = new EventMessage() {
+            @Override
+            public void fireEvent(EventMedusa evt) {
+                // Do all magic here
+                System.out.println("[" +evt.getTitle() + " : " + evt.getMessage() + "]");
+            }
+        };
+    }
 
-/**
- * Medusa Server Main Class
- */
-public class Main {
-    public static void main(String[] args) {
+    @Override
+    public void run() {
+        System.out.println("Event Handler running...");
+    }
+    
+    public EventMessage getEventListener() {
+        System.out.println("New Listener");
         
-        MedusaServer medusa = new MedusaServer();
+        return newEvent;
     }
 }
