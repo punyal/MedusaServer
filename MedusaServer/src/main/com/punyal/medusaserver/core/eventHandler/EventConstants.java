@@ -21,9 +21,49 @@ public class EventConstants {
         // prevent initialization
     }
     
-    public static final int RADIUSpriority = 2;
-    public static final int CoAPpriority   = 2;
-    public static final int RESTpriority   = 2;
+    public enum Protocol {
+        RADIUS (0),
+        CoAP   (1),
+        REST   (2);
+        
+        public final int value;
+        
+        Protocol(int value) {
+            this.value = value;
+        }
+        
+        public static Protocol valueOf(int value) {
+            switch(value) {
+                case 0: return RADIUS;
+                case 1: return CoAP;
+                case 2: return REST;
+                default: throw new IllegalArgumentException("Unknown Event Source "+value); 
+            }
+        }
+    }
+        
+    public enum Priority {
+        CRITICAL  (0),
+        HIGH      (1),
+        NORMAL    (2),
+        LOW       (3);
+        
+        public final int value;
+        
+        Priority(int value) {
+            this.value = value;
+        }
+        
+        public static Priority valueOf(int value) {
+            switch(value) {
+                case 0: return CRITICAL;
+                case 1: return HIGH;
+                case 2: return NORMAL;
+                case 3: return LOW;
+                default: throw new IllegalArgumentException("Unknown Event Priority "+value); 
+            }
+        }
+    }
     
     public enum Type {
         UNKNOWN   (1),

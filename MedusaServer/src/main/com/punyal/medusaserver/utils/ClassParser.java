@@ -18,10 +18,11 @@ package com.punyal.medusaserver.utils;
 
 import com.punyal.jrad.core.network.events.MessageListenerInt;
 import com.punyal.jrad.core.radius.Message;
-import static com.punyal.medusaserver.core.eventHandler.EventConstants.*;
+import com.punyal.medusaserver.core.eventHandler.EventConstants;
 import static com.punyal.medusaserver.core.eventHandler.EventConstants.Type.*;
 import com.punyal.medusaserver.core.eventHandler.EventMedusa;
 import com.punyal.medusaserver.core.eventHandler.EventMessage;
+import com.punyal.medusaserver.protocols.RADIUS;
 import java.util.EventObject;
 
 /**
@@ -36,13 +37,23 @@ public class ClassParser {
 
             @Override
             public void newIncomingMessage(EventObject evt) {
-                // TODO: change title and message related with the event
-                
-                EventMedusa newEvt = new EventMedusa(RADIUSpriority,
+                // There are two diferent responses: valid or timeout
+                EventMedusa newEvt;
+                if(((Message)evt.getSource()).response == null) { // Timeout
+                    newEvt = new EventMedusa(RADIUS.PRIORITY,
+                        EventConstants.Protocol.RADIUS,
+                        ERROR,
+                        "Timeout",
+                        "RADIUS Client",
+                        evt);
+                } else {
+                    newEvt = new EventMedusa(RADIUS.PRIORITY,
+                        EventConstants.Protocol.RADIUS,
                         NORMAL,
                         ((Message)evt.getSource()).response.getCode().toString(),
-                        "New RADIUS Message",
+                        "RADIUS Client",
                         evt);
+                }
                 eventMessage.fireEvent(newEvt);
             }
         };

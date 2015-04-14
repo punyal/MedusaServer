@@ -16,17 +16,17 @@
  ******************************************************************************/
 package com.punyal.medusaserver.core;
 
-import com.punyal.jrad.JRaDclient;
-import static com.punyal.jrad.core.radius.RADIUS.DEFAULT_RADIUS_PORT;
 import com.punyal.medusaserver.core.eventHandler.EventHandler;
 import static com.punyal.medusaserver.core.medusa.MedusaConstants.*;
 import com.punyal.medusaserver.core.medusa.Status;
-import com.punyal.medusaserver.utils.ClassParser;
+import com.punyal.medusaserver.protocols.CoAP;
+import java.net.SocketException;
 
 public class MedusaServer {
     EventHandler evtHandler; // Independent thread for event management
     Status status;     // Status of the Server
-    JRaDclient jRaDclient;
+    //RADIUS radiusClient; // RADIUS Client
+    CoAP coapServer;     // CoAP Server
     
     /**
      * Constructor
@@ -43,13 +43,29 @@ public class MedusaServer {
         evtHandler.start();
         
         // Create and Start a RADIUS client
-        jRaDclient = new JRaDclient();
-        jRaDclient.addListener(ClassParser.eventMedusa2jRAD(evtHandler.getEventListener()));
+        //radiusClient = new RADIUS();
+        //radiusClient.addListener(ClassParser.eventMedusa2jRAD(evtHandler.getEventListener()));
+        //radiusClient.setSecretKey("RADIUSoffice");
+        //radiusClient.setServer("192.168.0.111", RADIUS.DEFAULT_PORT);
+        //evtHandler.setProtocolAdaptor(radiusClient);
+        
+        // Create and Start a CoAP Server
+        try {
+            coapServer = new CoAP();
+            coapServer.addListener(evtHandler.getEventListener());
+            evtHandler.setProtocolAdaptor(coapServer);
+            coapServer.start();
+            
+        } catch (SocketException e) {
+            
+            System.err.println("Failed to initialize server: " + e.getMessage());
+        }
         
         
-        jRaDclient.setSecretKey("RADIUSoffice");
-        jRaDclient.setServer("192.168.0.111", DEFAULT_RADIUS_PORT);
-        jRaDclient.authenticate("mulle", "mulle");
+        // Test a users
+        
+        //radiusClient.authenticate("mulle215", "mulle215");
+        //radiusClient.authenticate("mulle", "mulle");
         
     }
     

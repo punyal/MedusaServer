@@ -16,40 +16,46 @@
  ******************************************************************************/
 package com.punyal.medusaserver.core.eventHandler;
 
-import com.punyal.medusaserver.core.eventHandler.EventConstants.Type;
+import com.punyal.medusaserver.core.eventHandler.EventConstants.*;
 import java.util.EventObject;
+import org.eclipse.californium.core.server.resources.CoapExchange;
 
 public class EventMedusa extends EventObject {
     // extended parameters
-    private int priority; // priority of events for event dispatcher
+    private Priority priority; // priority of events for event dispatcher
     private Type type;
+    private Protocol protocol;
     private String message;
     private String messageTittle;
     
     /**
      * Constructor of EventMedusa
      * @param priority to attend the event
+     * @param protocol source of event
      * @param type of the message
      * @param source the source of the event
      */
-    public EventMedusa(int priority, Type type, Object source) {
+    public EventMedusa(Priority priority, Protocol protocol, Type type, Object source) {
         super(source);
         this.priority = priority;
+        this.protocol = protocol;
         this.type = type;
     }
     
     /**
      * Constructor of EventMedusa
      * @param priority to attend the event
+     * @param protocol source of event
      * @param type of the message
      * @param message text of event to show
      * @param title title of event to show
      * @param source the source of the event
      */
-    public EventMedusa(int priority, Type type, String message,
+    public EventMedusa(Priority priority, Protocol protocol, Type type, String message,
             String title, Object source) {
         super(source);
         this.priority = priority;
+        this.protocol = protocol;
         this.type = type;
         this.message = message;
         this.messageTittle = title;
@@ -75,7 +81,7 @@ public class EventMedusa extends EventObject {
      * Set Event priority
      * @param priority of event
      */
-    public void setPriotity(int priority) {
+    public void setPriotity(Priority priority) {
         this.priority = priority;
     }
     
@@ -83,8 +89,24 @@ public class EventMedusa extends EventObject {
      * Get Event priority
      * @return priority of event
      */
-    public int getPriority() {
+    public Priority getPriority() {
         return this.priority;
+    }
+    
+    /**
+     * Set Protocol source
+     * @param protocol source
+     */
+    public void setProtocol(Protocol protocol) {
+        this.protocol = protocol;
+    }
+    
+    /**
+     * Get Protocol source
+     * @return protocol source
+     */
+    public Protocol getProtocol() {
+        return this.protocol;
     }
     
     /**
