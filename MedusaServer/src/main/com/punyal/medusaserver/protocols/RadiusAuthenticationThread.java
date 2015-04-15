@@ -16,22 +16,16 @@
  ******************************************************************************/
 package com.punyal.medusaserver.protocols;
 
-import com.punyal.jrad.JRaDclient;
 import com.punyal.jrad.core.network.events.MessageListenerInt;
+import com.punyal.jrad.core.radius.Message;
+import com.punyal.medusaserver.core.eventHandler.EventConstants;
 import com.punyal.medusaserver.core.eventHandler.EventConstants.Protocol;
+import com.punyal.medusaserver.core.eventHandler.EventMedusa;
+import com.punyal.medusaserver.core.eventHandler.EventMessage;
+import com.punyal.medusaserver.core.eventHandler.EventSource;
+import com.punyal.medusaserver.core.medusa.Configuration;
+import com.punyal.medusaserver.utils.Packetizer;
 import java.util.EventObject;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.eclipse.californium.core.coap.CoAP.ResponseCode;
-import org.eclipse.californium.core.server.resources.CoapExchange;
 
 public class RadiusAuthenticationThread extends Thread {
     private Protocol protocol;
@@ -39,93 +33,56 @@ public class RadiusAuthenticationThread extends Thread {
     private String userName;
     private String userPass;
     
-    private ExecutorService executor;
-    private Future<String> future;
+    private RADIUS radiusClient;
     
-    
-    
+    private EventSource mlistener = new EventSource();
+        
     public RadiusAuthenticationThread(Protocol protocol, Object responder, String userName, String userPass) {
         this.protocol = protocol;
         this.responder = responder;
         this.userName = userName;
         this.userPass = userPass;
-    }
-    
-    @Override
-    public void run() {
-        // Thread Timeout staff
-        executor = Executors.newSingleThreadExecutor();
-        future = executor.submit(new Task());
-        try {
-            System.out.println("Started..");
-            try {
-                future.get(2, TimeUnit.SECONDS);
-            } catch (InterruptedException | ExecutionException ex) {
-            System.out.println("InterruptedException | ExecutionException");
-                // Return Error
-                switch(this.protocol) {
-                    case CoAP:
-                        ((CoapExchange)responder).respond(ResponseCode.INTERNAL_SERVER_ERROR, "Error");
-                        break;
-                    case REST:
-                        break;
-                }
-            }
-            System.out.println("Normal Response");
-            // Return Normal response
-            switch(this.protocol) {
-                case CoAP:
-                    ((CoapExchange)responder).respond("Ticket");
-                    break;
-                case REST:
-                    break;
-            }
-        } catch (TimeoutException e) {
-            System.out.println("TimeoutException");
-            // Return Error
-            switch(this.protocol) {
-                case CoAP:
-                    ((CoapExchange)responder).respond(ResponseCode.INTERNAL_SERVER_ERROR, "Error");
-                    break;
-                case REST:
-                    break;
-            }
-        }        
-        executor.shutdownNow();    
-    }
-}
-
-class Task implements Callable<String> {
-    private boolean waiting = true;
-    
-    private JRaDclient radiusClient;
-    
-    
-    @Override
-    public String call() throws Exception {
-        radiusClient = new JRaDclient();
-        radiusClient.setSecretKey("RADIUSoffice");
-        radiusClient.setServer("192.168.0.111", RADIUS.DEFAULT_PORT);
+        
+        radiusClient = new RADIUS();
+        radiusClient.setSecretKey(Configuration.RADIUS_SECRET_KEY);
+        radiusClient.setServer(Configuration.RADIUS_SERVER_IP, Configuration.RADIUS_SERVER_PORT);
         radiusClient.addListener(new MessageListenerInt() {
 
             @Override
             public void newIncomingMessage(EventObject evt) {
-                System.out.println("New incoming!!");
-                TaskStop();
+                RadiusResponse(evt);
             }
         });
-        radiusClient.authenticate("mulle", "mulle");
-        while(true) {
-            if(this.waiting == false) break;
-        }
-        return "RADIUS response";
-    }
-    
-    public Task() {
         
     }
     
-    public void TaskStop() {
-        this.waiting = false;
+    @Override
+    public void run() {
+        radiusClient.authenticate(userName, userPass);
+    }
+    
+    private void RadiusResponse(EventObject evt) {
+        EventMedusa newEvt;
+        
+        if(((Message)evt.getSource()).response == null){
+            newEvt = new EventMedusa(RADIUS.PRIORITY,
+                Protocol.RADIUS,
+                EventConstants.Type.ERROR,
+                "Timeout",
+                "RADIUS Client",
+                new Packetizer(this.responder , this.protocol, evt.getSource() , Protocol.RADIUS ) );
+        } else {
+            newEvt = new EventMedusa(RADIUS.PRIORITY,
+                Protocol.RADIUS,
+                EventConstants.Type.NORMAL,
+                this.userName,
+                "RADIUS Client",
+                new Packetizer(this.responder , this.protocol, evt.getSource() , Protocol.RADIUS ) );
+        }
+        mlistener.newEvent(newEvt);
+    }
+    
+    public void addListener(EventMessage listener) {
+        mlistener.addEventListener(listener);
     }
 }

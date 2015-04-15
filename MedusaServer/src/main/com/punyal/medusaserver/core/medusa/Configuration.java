@@ -14,35 +14,15 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  ******************************************************************************/
-package com.punyal.medusaserver.utils;
+package com.punyal.medusaserver.core.medusa;
 
-import java.io.UnsupportedEncodingException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import static com.punyal.jrad.core.radius.RADIUS.DEFAULT_RADIUS_PORT;
 
-/**
- * Class to Convert between different Unit/Object types
- */
-public class UnitConversion {
-    // Prevent Initialization
-    private UnitConversion() {}
+public class Configuration {
+    private Configuration() {} // Prevents initialization
     
-    public static String ByteArray2Hex(byte[] bytes) {
-        if(bytes == null) return "null";
-        StringBuilder sb = new StringBuilder();
-        for(byte b:bytes)
-            sb.append(String.format("%02x", b & 0xFF));
-        return sb.toString();
-    }
+    public static String RADIUS_SERVER_IP = "192.168.0.111";
+    public static int RADIUS_SERVER_PORT = DEFAULT_RADIUS_PORT;
+    public static String RADIUS_SECRET_KEY = "RADIUSoffice";
     
-    public static String ByteArray2String(byte[] bytes) {
-        String string;
-        try {
-            string = new String(bytes, "UTF-8");
-        } catch (UnsupportedEncodingException ex) {
-            System.err.println("ByteArray2String UnsupportedEncodingException "+ ex);
-            string = "";
-        }
-        return string;
-    }
 }

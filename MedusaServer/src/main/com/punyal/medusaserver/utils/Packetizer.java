@@ -16,33 +16,19 @@
  ******************************************************************************/
 package com.punyal.medusaserver.utils;
 
-import java.io.UnsupportedEncodingException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.punyal.medusaserver.core.eventHandler.EventConstants.Protocol;
 
-/**
- * Class to Convert between different Unit/Object types
- */
-public class UnitConversion {
-    // Prevent Initialization
-    private UnitConversion() {}
+public class Packetizer {
+    public Object Request;
+    public Protocol RequestProtocol;
+    public Object Response;
+    public Protocol ResponseProtocol;
     
-    public static String ByteArray2Hex(byte[] bytes) {
-        if(bytes == null) return "null";
-        StringBuilder sb = new StringBuilder();
-        for(byte b:bytes)
-            sb.append(String.format("%02x", b & 0xFF));
-        return sb.toString();
-    }
-    
-    public static String ByteArray2String(byte[] bytes) {
-        String string;
-        try {
-            string = new String(bytes, "UTF-8");
-        } catch (UnsupportedEncodingException ex) {
-            System.err.println("ByteArray2String UnsupportedEncodingException "+ ex);
-            string = "";
-        }
-        return string;
+    public Packetizer(Object Request, Protocol RequestProtocol,
+               Object Response, Protocol ResponseProtocol) {
+        this.Request = Request;
+        this.RequestProtocol = RequestProtocol;
+        this.Response = Response;
+        this.ResponseProtocol = ResponseProtocol;
     }
 }

@@ -68,13 +68,13 @@ public class CoAP extends CoapServer {
             newEvt = new EventMedusa(CoAP.PRIORITY,
                     EventConstants.Protocol.CoAP,
                     EventConstants.Type.NORMAL,
-                    "CoAP_Authentication GET",
+                    "CoAP_Authentication GET :: " + exchange.getRequestText(),
                     "CoAP Server",
                     exchange);
             
             mlistener.newEvent(newEvt);
             // respond to the request
-            exchange.respond("String to encrypt");
+            //exchange.respond("String to encrypt");
         }
         
         @Override

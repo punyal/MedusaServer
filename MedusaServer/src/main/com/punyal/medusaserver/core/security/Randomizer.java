@@ -14,35 +14,26 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  ******************************************************************************/
-package com.punyal.medusaserver.utils;
+package com.punyal.medusaserver.core.security;
 
-import java.io.UnsupportedEncodingException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.security.SecureRandom;
 
-/**
- * Class to Convert between different Unit/Object types
- */
-public class UnitConversion {
-    // Prevent Initialization
-    private UnitConversion() {}
-    
-    public static String ByteArray2Hex(byte[] bytes) {
-        if(bytes == null) return "null";
-        StringBuilder sb = new StringBuilder();
-        for(byte b:bytes)
-            sb.append(String.format("%02x", b & 0xFF));
-        return sb.toString();
+public class Randomizer {
+    SecureRandom random;
+    public Randomizer() {
+        random = new SecureRandom();
     }
     
-    public static String ByteArray2String(byte[] bytes) {
-        String string;
-        try {
-            string = new String(bytes, "UTF-8");
-        } catch (UnsupportedEncodingException ex) {
-            System.err.println("ByteArray2String UnsupportedEncodingException "+ ex);
-            string = "";
-        }
-        return string;
+    public byte[] generate16bytes() {
+        byte bytes[] = new byte[16];
+        random.nextBytes(bytes);
+        return bytes;
     }
+    
+    public byte[] generate8bytes() {
+        byte bytes[] = new byte[8];
+        random.nextBytes(bytes);
+        return bytes;
+    }
+    
 }
