@@ -29,7 +29,7 @@
 	<li><u>0.1</u>
 
 	<ul>
-		<li>Adds support to CoAP with Callenge-Response Method.</li>
+		<li>Adds support to CoAP with Challenge-Response Method.</li>
 		<li>Adds support to REST</li>
 	</ul>
 	</li>
