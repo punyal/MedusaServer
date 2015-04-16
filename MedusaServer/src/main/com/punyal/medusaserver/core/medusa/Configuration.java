@@ -25,4 +25,8 @@ public class Configuration {
     public static int RADIUS_SERVER_PORT = DEFAULT_RADIUS_PORT;
     public static String RADIUS_SECRET_KEY = "RADIUSoffice";
     
+    // MySQL DataBase
+    public static String MySQL_USER = "root";
+    public static String MySQL_USER_PASSWORD = "";
+    public static String MySQL_SERVER = "localhost";
 }

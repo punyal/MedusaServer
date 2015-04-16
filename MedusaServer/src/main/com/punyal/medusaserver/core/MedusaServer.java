@@ -16,7 +16,9 @@
  ******************************************************************************/
 package com.punyal.medusaserver.core;
 
+import com.punyal.medusaserver.core.db.DBsql;
 import com.punyal.medusaserver.core.eventHandler.EventHandler;
+import static com.punyal.medusaserver.core.medusa.Configuration.*;
 import static com.punyal.medusaserver.core.medusa.MedusaConstants.*;
 import com.punyal.medusaserver.core.medusa.Status;
 import com.punyal.medusaserver.protocols.CoAP;
@@ -66,6 +68,10 @@ public class MedusaServer {
         
         //radiusClient.authenticate("mulle215", "mulle215");
         //radiusClient.authenticate("mulle", "mulle");
+        
+        // Test DB
+        DBsql db = new DBsql(MySQL_USER, MySQL_USER_PASSWORD, MySQL_SERVER);
+        db.Query("SELECT * FROM radcheck");
         
     }
     

@@ -102,13 +102,19 @@ switch(resolution.RequestProtocol.toString()) {
                                 break;
                             case PUT: // Request a valid Ticket
                                 String[] userPass = coapReq.getRequestText().split("@");
-                                RadiusAuthenticationThread rat = new RadiusAuthenticationThread(
+                                if(userPass.length != 2) {
+                                    Logger.normal("[CoAP] Ticket [Wrong user-password format] @"+ coapReq.getSourceAddress() + ":" + coapReq.getSourcePort());
+                                    coapReq.respond(ResponseCode.NOT_ACCEPTABLE, "Wrong user-password format");
+                                }else{
+                                    RadiusAuthenticationThread rat = new RadiusAuthenticationThread(
                                         EventConstants.Protocol.CoAP,
                                         evt.getSource(),
                                         userPass[0],
                                         userPass[1]);
-                                rat.addListener(globalEvent);
-                                rat.start();
+                                    rat.addListener(globalEvent);
+                                    rat.start();
+                                }
+                                
                                 break;
                             default:
                                 coapReq.respond(ResponseCode.INTERNAL_SERVER_ERROR, "Unvalid CoAP Code");
