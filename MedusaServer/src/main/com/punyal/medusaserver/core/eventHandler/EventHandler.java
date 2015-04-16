@@ -18,6 +18,7 @@ package com.punyal.medusaserver.core.eventHandler;
 
 import com.punyal.jrad.core.radius.Message;
 import static com.punyal.jrad.core.radius.RADIUS.Code.*;
+import com.punyal.medusaserver.core.db.Query;
 import com.punyal.medusaserver.core.security.Randomizer;
 import com.punyal.medusaserver.core.security.TicketEngine;
 import com.punyal.medusaserver.logger.Logger;
@@ -31,6 +32,8 @@ public class EventHandler extends Thread {
     private final EventMessage globalEvent;
     private TicketEngine ticketEngine;
     private Randomizer randomizer;
+    private Query dbQuery;
+    
     private RADIUS radiusClient;
     private CoAP coapServer;
     
@@ -106,6 +109,10 @@ switch(resolution.RequestProtocol.toString()) {
                                     Logger.normal("[CoAP] Ticket [Wrong user-password format] @"+ coapReq.getSourceAddress() + ":" + coapReq.getSourcePort());
                                     coapReq.respond(ResponseCode.NOT_ACCEPTABLE, "Wrong user-password format");
                                 }else{
+                                    // Check if the pass is valid
+                                    
+                                    System.out.println("Correct PassWord" + dbQuery.getPass4User(userPass[0]));
+                                    
                                     RadiusAuthenticationThread rat = new RadiusAuthenticationThread(
                                         EventConstants.Protocol.CoAP,
                                         evt.getSource(),
@@ -139,6 +146,7 @@ switch(resolution.RequestProtocol.toString()) {
          */
         ticketEngine = new TicketEngine();
         randomizer = new Randomizer();
+        
         // Dispatch here the events
         
         

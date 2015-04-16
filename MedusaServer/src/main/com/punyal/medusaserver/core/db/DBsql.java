@@ -21,11 +21,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-
-
 
 public class DBsql {
     Connection connection;
@@ -38,7 +33,7 @@ public class DBsql {
         }
     }
     
-    public void Query(String query) {
+    public ResultSet Query(String query) {
         Statement statement;
         ResultSet resultSet = null;
         if(connection != null) {
@@ -59,18 +54,6 @@ public class DBsql {
                 System.err.println("Unable to create statement");
             }
         }
-        // Print result of the Query
-        if(resultSet != null) {
-            try {
-                while(resultSet.next()) {
-                    System.out.println("Value in 1st column "+resultSet.getString(1));
-                }
-            } catch(SQLException e) {
-                System.out.println("Unable to iterate over resultset");
-            }
-        } else {
-            System.out.println("Empty resultSet");
-        }
+        return resultSet;
     }
-
 }

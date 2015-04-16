@@ -14,19 +14,28 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  ******************************************************************************/
-package com.punyal.medusaserver.core.medusa;
+package com.punyal.medusaserver.core.db;
 
-import static com.punyal.jrad.core.radius.RADIUS.DEFAULT_RADIUS_PORT;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
-public class Configuration {
-    private Configuration() {} // Prevents initialization
+public class Query {
+    DBsql mySQL;
     
-    public static String RADIUS_SERVER_IP = "localhost";
-    public static int RADIUS_SERVER_PORT = DEFAULT_RADIUS_PORT;
-    public static String RADIUS_SECRET_KEY = "testing123";
+    public Query(String user, String password, String server) {
+        mySQL = new DBsql(user, password, server);
+    }
     
-    // MySQL DataBase
-    public static String MySQL_USER = "root";
-    public static String MySQL_USER_PASSWORD = "";
-    public static String MySQL_SERVER = "localhost";
+    public String getPass4User(String userName) {
+        ResultSet result = mySQL.Query("SELECT value FROM radcheck WHERE username=\"" + userName + "\" && attribute=\"Cleartext-Password\"");
+        if(result != null) {
+            try {
+                return result.getString(1);
+            } catch (SQLException ex) {
+            }
+        }
+        System.err.println("NO correct SQL pass response");
+        return null;
+            
+    }
 }
