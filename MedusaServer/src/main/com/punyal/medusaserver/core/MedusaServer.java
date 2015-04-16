@@ -71,7 +71,7 @@ public class MedusaServer {
         
         // Test DB
         DBsql db = new DBsql(MySQL_USER, MySQL_USER_PASSWORD, MySQL_SERVER);
-        db.Query("SELECT * FROM radcheck");
+        db.Query("SELECT value FROM radcheck WHERE username=\"mulle\" && attribute=\"Cleartext-Password\"");
         
     }
     
