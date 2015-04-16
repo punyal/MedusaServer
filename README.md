@@ -21,6 +21,7 @@
 	<li>JRaD-Client&nbsp;0.1</li>
 	<li>FreeRadius 2.2.6</li>
 	<li>RadiusDesk 2.6.2 or configure FreeRadius with mysql</li>
+	<li>MySQL-Connector&nbsp;5.1.35</li>
 </ul>
 
 <p><strong>Version Revision:</strong></p>
