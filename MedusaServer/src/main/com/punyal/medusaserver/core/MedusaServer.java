@@ -70,8 +70,8 @@ public class MedusaServer {
         //radiusClient.authenticate("mulle", "mulle");
         
         // Test DB
-        DBsql db = new DBsql(MySQL_USER, MySQL_USER_PASSWORD, MySQL_SERVER);
-        db.Query("SELECT value FROM radcheck WHERE username=\"mulle\" && attribute=\"Cleartext-Password\"");
+        //DBsql db = new DBsql(MySQL_USER, MySQL_USER_PASSWORD, MySQL_SERVER);
+        //db.Query("SELECT value FROM radcheck WHERE username=\"mulle\" && attribute=\"Cleartext-Password\"");
         
     }
     

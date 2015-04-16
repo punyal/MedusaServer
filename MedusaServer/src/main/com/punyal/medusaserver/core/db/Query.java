@@ -30,7 +30,8 @@ public class Query {
         ResultSet result = mySQL.Query("SELECT value FROM radcheck WHERE username=\"" + userName + "\" && attribute=\"Cleartext-Password\"");
         if(result != null) {
             try {
-                return result.getString(1);
+                if(result.next())
+                    return result.getString(1);
             } catch (SQLException ex) {
             }
         }

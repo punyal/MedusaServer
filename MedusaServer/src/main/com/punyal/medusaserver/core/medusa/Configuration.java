@@ -27,6 +27,6 @@ public class Configuration {
     
     // MySQL DataBase
     public static String MySQL_USER = "root";
-    public static String MySQL_USER_PASSWORD = "";
+    public static String MySQL_USER_PASSWORD = "Arrowhead2015&&";
     public static String MySQL_SERVER = "localhost";
 }

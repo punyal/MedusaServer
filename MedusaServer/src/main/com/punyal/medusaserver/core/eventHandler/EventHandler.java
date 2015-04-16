@@ -19,6 +19,7 @@ package com.punyal.medusaserver.core.eventHandler;
 import com.punyal.jrad.core.radius.Message;
 import static com.punyal.jrad.core.radius.RADIUS.Code.*;
 import com.punyal.medusaserver.core.db.Query;
+import static com.punyal.medusaserver.core.medusa.Configuration.*;
 import com.punyal.medusaserver.core.security.Randomizer;
 import com.punyal.medusaserver.core.security.TicketEngine;
 import com.punyal.medusaserver.logger.Logger;
@@ -101,7 +102,7 @@ switch(resolution.RequestProtocol.toString()) {
                                 String newAuthenticator = UnitConversion.ByteArray2Hex(randomizer.generate16bytes());
                                 // Save the information at this point
                                 Logger.normal("[CoAP] Authenticator [" + newAuthenticator + "] to " + coapReq.getSourceAddress() + ":" + coapReq.getSourcePort());
-                                coapReq.respond("Ticket [" + newAuthenticator + "]");
+                                coapReq.respond("Authenticator [" + newAuthenticator + "]");
                                 break;
                             case PUT: // Request a valid Ticket
                                 String[] userPass = coapReq.getRequestText().split("@");
@@ -111,7 +112,7 @@ switch(resolution.RequestProtocol.toString()) {
                                 }else{
                                     // Check if the pass is valid
                                     
-                                    System.out.println("Correct PassWord" + dbQuery.getPass4User(userPass[0]));
+                                    System.out.println("Correct PassWord " + dbQuery.getPass4User(userPass[0]));
                                     
                                     RadiusAuthenticationThread rat = new RadiusAuthenticationThread(
                                         EventConstants.Protocol.CoAP,
@@ -146,6 +147,7 @@ switch(resolution.RequestProtocol.toString()) {
          */
         ticketEngine = new TicketEngine();
         randomizer = new Randomizer();
+        dbQuery = new Query(MySQL_USER, MySQL_USER_PASSWORD, MySQL_SERVER);
         
         // Dispatch here the events
         
