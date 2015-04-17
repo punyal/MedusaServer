@@ -17,6 +17,7 @@
 package com.punyal.medusaserver.protocols;
 
 import com.punyal.jrad.core.radius.Message;
+import com.punyal.medusaserver.core.db.Query;
 import com.punyal.medusaserver.core.security.TicketEngine;
 import com.punyal.medusaserver.utils.Packetizer;
 import org.eclipse.californium.core.server.resources.CoapExchange;
@@ -24,11 +25,11 @@ import org.eclipse.californium.core.server.resources.CoapExchange;
 public class RADIUSDispatcher {
     private RADIUSDispatcher () {}
     
-    public static void dispatchResponse(Packetizer resolution, TicketEngine ticketEngine) {
+    public static void dispatchResponse(Packetizer resolution, TicketEngine ticketEngine, Query dbQuery) {
         Message radResponse = (Message)resolution.Response;
         switch(resolution.RequestProtocol) {
             case CoAP:
-                CoAPDispatcher.dispatchResponse(radResponse, (CoapExchange)resolution.Request, ticketEngine);
+                CoAPDispatcher.dispatchResponse(radResponse, (CoapExchange)resolution.Request, ticketEngine, dbQuery);
                 break;
             case REST:
                 break;

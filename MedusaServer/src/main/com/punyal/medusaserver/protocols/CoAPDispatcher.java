@@ -20,19 +20,22 @@ import com.punyal.jrad.core.radius.Message;
 import com.punyal.medusaserver.core.db.Query;
 import com.punyal.medusaserver.core.eventHandler.EventConstants;
 import com.punyal.medusaserver.core.eventHandler.EventMessage;
-import com.punyal.medusaserver.core.security.Randomizer;
+import static com.punyal.medusaserver.core.medusa.Configuration.*;
+import com.punyal.medusaserver.core.security.Ticket;
 import com.punyal.medusaserver.core.security.TicketEngine;
 import com.punyal.medusaserver.utils.UnitConversion;
+import java.util.Date;
 import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 
 public class CoAPDispatcher {
     private CoAPDispatcher() {}
     
-    public static void dispatchRequest(CoapExchange coapReq, Randomizer randomizer, Query dbQuery, TicketEngine ticketEngine, EventMessage globalEvent) {
+    public static void dispatchRequest(CoapExchange coapReq, Query dbQuery, TicketEngine ticketEngine, EventMessage globalEvent) {
         switch(coapReq.getRequestCode()) {
             case GET: // Request a Authenticator Code
-                String newAuthenticator = UnitConversion.ByteArray2Hex(randomizer.generate16bytes());
+                String newAuthenticator = UnitConversion.ByteArray2Hex(ticketEngine.generateAuthenticator(coapReq.getSourceAddress()));
+                //ticketEngine.printList();
                 // Save the information at this point
                 coapReq.respond("Authenticator [" + newAuthenticator + "]");
                 break;
@@ -42,8 +45,10 @@ public class CoAPDispatcher {
                     coapReq.respond(ResponseCode.NOT_ACCEPTABLE, "Wrong user-password format");
                 }else{
                     // Check if the pass is valid
-                    System.out.println("Correct PassWord " + dbQuery.getPass4User(userPass[0]));
-
+                    //System.out.println("Correct PassWord " + dbQuery.getPass4User(userPass[0]));
+                    if(!ticketEngine.checkUserPass(dbQuery, coapReq.getSourceAddress(), userPass[0], userPass[1]))
+                        coapReq.respond(ResponseCode.UNAUTHORIZED, "Wrong user-password");
+                    
                     RadiusAuthenticationThread rat = new RadiusAuthenticationThread(
                         EventConstants.Protocol.CoAP,
                         coapReq,
@@ -59,17 +64,21 @@ public class CoAPDispatcher {
         }
     }
     
-    public static void dispatchResponse(Message radRequest, CoapExchange coapReq, TicketEngine ticketEngine) {
+    public static void dispatchResponse(Message radRequest, CoapExchange coapReq, TicketEngine ticketEngine, Query dbQuery) {
         if((Message)radRequest.response == null)
             coapReq.respond(ResponseCode.INTERNAL_SERVER_ERROR, "Timeout");
         else {
             String userName = radRequest.getAttributes(0).getValueString();
             switch(radRequest.response.getCode()){
                 case ACCESS_ACCEPT:
-                    // TODO: change this to a TicketGenerator
-                    String newTicket = UnitConversion.ByteArray2Hex(ticketEngine.generateTicket(userName, coapReq.getSourceAddress()));
-                    // TODO: Save Ticket here
-                    coapReq.respond("Ticket [" + newTicket + "]");
+                    // TODO: Create the ticket and extra information with the RADIUS response
+                    Ticket tmpTicket = ticketEngine.createTicket4User(dbQuery, coapReq.getSourceAddress(), userName, 0);
+                    if(tmpTicket == null) {
+                        coapReq.respond(ResponseCode.INTERNAL_SERVER_ERROR, "Ticket Generation Error");
+                    }
+                    else {
+                        coapReq.respond("Ticket [" + UnitConversion.ByteArray2Hex(tmpTicket.getTicket()) + "]");
+                    }
                     break;
                 case ACCESS_REJECT:
                     coapReq.respond(ResponseCode.UNAUTHORIZED, "Not Authorized");

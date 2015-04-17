@@ -17,8 +17,7 @@
 package com.punyal.medusaserver.utils;
 
 import java.io.UnsupportedEncodingException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.text.SimpleDateFormat;
 
 /**
  * Class to Convert between different Unit/Object types
@@ -44,5 +43,9 @@ public class UnitConversion {
             string = "";
         }
         return string;
+    }
+    
+    public static String Timestamp2String(long timestamp) {
+        return new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.S").format(timestamp);
     }
 }

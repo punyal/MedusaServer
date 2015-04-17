@@ -29,4 +29,12 @@ public class Configuration {
     public static String MySQL_USER = "root";
     public static String MySQL_USER_PASSWORD = "Arrowhead2015&&";
     public static String MySQL_SERVER = "localhost";
+    
+    
+    
+    // Performance Constants
+    public static long AUTHENTICATION_CODE_TIMEOUT = 10000; // 1000*10 = 10000(10s)
+    public static long RADIUS_TIMEOUT = 1000; // 1000*1 (1s)
+    public static long GENERIC_TICKET_TIMEOUT = 600000; // 1000*60*10 = 600000 (10m)
+    
 }

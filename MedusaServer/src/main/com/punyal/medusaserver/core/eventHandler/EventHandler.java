@@ -16,22 +16,18 @@
  ******************************************************************************/
 package com.punyal.medusaserver.core.eventHandler;
 
-import com.punyal.jrad.core.radius.Message;
-import static com.punyal.jrad.core.radius.RADIUS.Code.*;
-import com.punyal.medusaserver.core.MedusaServer;
 import com.punyal.medusaserver.core.db.Query;
 import static com.punyal.medusaserver.core.medusa.Configuration.*;
-import com.punyal.medusaserver.core.security.Randomizer;
+import com.punyal.medusaserver.core.security.Ticket;
 import com.punyal.medusaserver.core.security.TicketEngine;
-import com.punyal.medusaserver.logger.Log;
 import com.punyal.medusaserver.protocols.*;
 import com.punyal.medusaserver.utils.Packetizer;
 import com.punyal.medusaserver.utils.UnitConversion;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static org.eclipse.californium.core.coap.CoAP.*;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 
 public class EventHandler extends Thread {
@@ -39,7 +35,6 @@ public class EventHandler extends Thread {
     private boolean running;
     private final EventMessage globalEvent;
     private TicketEngine ticketEngine;
-    private Randomizer randomizer;
     private Query dbQuery;
     
     private List<EventMedusa> messageQueue;
@@ -72,10 +67,8 @@ public class EventHandler extends Thread {
          * Initialization of all subsystems
          */
         ticketEngine = new TicketEngine();
-        randomizer = new Randomizer();
         dbQuery = new Query(MySQL_USER, MySQL_USER_PASSWORD, MySQL_SERVER);
         messageQueue = new ArrayList<>();
-        
         
         while(running) {
             // DISPATCHER ======================================================
@@ -83,10 +76,10 @@ public class EventHandler extends Thread {
                 EventMedusa evt = messageQueue.remove(0);
                 switch(evt.getProtocol()) {
                     case RADIUS:
-                        RADIUSDispatcher.dispatchResponse((Packetizer)evt.getSource(), ticketEngine);
+                        RADIUSDispatcher.dispatchResponse((Packetizer)evt.getSource(), ticketEngine, dbQuery);
                         break;
                     case CoAP:
-                        CoAPDispatcher.dispatchRequest((CoapExchange)evt.getSource(), randomizer, dbQuery, ticketEngine, globalEvent);
+                        CoAPDispatcher.dispatchRequest((CoapExchange)evt.getSource(),  dbQuery, ticketEngine, globalEvent);
                         break;
                     case REST:
                         System.out.println("REST");
@@ -95,6 +88,24 @@ public class EventHandler extends Thread {
                 }
                 
             }
+            // DISPATCHER (END) ================================================ 
+            
+            // CLEAN OLD TICKETS & AUTHENTICATORS ==============================
+            long actualTime = (new Date()).getTime();
+            while((!ticketEngine.getTicketList().isEmpty())  && (ticketEngine.getTicketList().get(0).getExpireTime() < actualTime)) {
+                Ticket tmp = ticketEngine.getTicketList().remove(0);
+                if(tmp.getTicket() == null)
+                    System.err.println("Authenticator EXPIRED ["+ UnitConversion.ByteArray2Hex(tmp.getAuthenticator())
+                            +"] @ "+tmp.getAddress());
+                else
+                    System.err.println("Ticket EXPIRED ["+UnitConversion.ByteArray2Hex(tmp.getTicket())
+                            +"] for user \""+tmp.getUserName()+"\" @ "+tmp.getAddress());
+            }
+            // CLEAN OLD TICKETS & AUTHENTICATORS (END)=========================
+            
+            
+            
+            
             
             // Sleep 1ms to prevent synchronization errors it's possible to remove with other code :)
             try {
@@ -103,7 +114,7 @@ public class EventHandler extends Thread {
                 Logger.getLogger(EventHandler.class.getName()).log(Level.SEVERE, null, ex);
             }
             
-            // DISPATCHER (END) ==========================================================
+            
         }
         LOGGER.log(Level.WARNING, "Shutting down EventHandler");
         
