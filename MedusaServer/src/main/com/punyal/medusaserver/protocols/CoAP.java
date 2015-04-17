@@ -55,7 +55,7 @@ public class CoAP extends CoapServer {
         public CoAP_Authentication_Resource() {
             
             // set resource identifier
-            super("CoAP_Authentication");
+            super("Authentication");
             
             // set display name
             getAttributes().setTitle("AAA Resource");
@@ -73,8 +73,6 @@ public class CoAP extends CoapServer {
                     exchange);
             
             mlistener.newEvent(newEvt);
-            // respond to the request
-            //exchange.respond("String to encrypt");
         }
         
         @Override
@@ -89,8 +87,6 @@ public class CoAP extends CoapServer {
                     exchange);
             
             mlistener.newEvent(newEvt);
-            // respond to the request
-            //exchange.respond("AAA PUT");
         }
     }
 }

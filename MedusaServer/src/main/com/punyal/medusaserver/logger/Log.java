@@ -14,29 +14,17 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  ******************************************************************************/
-package com.punyal.medusaserver.core.db;
+package com.punyal.medusaserver.logger;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-public class Query {
-    DBsql mySQL;
+public class Log {
     
-    public Query(String user, String password, String server) {
-        mySQL = new DBsql(user, password, server);
-    }
+    private Log() {}
     
-    public String getPass4User(String userName) {
-        ResultSet result = mySQL.Query("SELECT value FROM radcheck WHERE username=\"" + userName + "\" && attribute=\"Cleartext-Password\"");
-        if(result != null) {
-            try {
-                if(result.next())
-                    return result.getString(1);
-            } catch (SQLException ex) {
-            }
-        }
-        // System.err.println("NO correct SQL pass response");
-        return null;
-            
+    public static void normal(String text) {
+        System.out.println(
+                (new SimpleDateFormat("MM/dd/yyyy h:mm:ss a ")).format(new Date()) + text);
     }
 }

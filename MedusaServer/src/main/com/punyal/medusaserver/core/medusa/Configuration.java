@@ -21,9 +21,9 @@ import static com.punyal.jrad.core.radius.RADIUS.DEFAULT_RADIUS_PORT;
 public class Configuration {
     private Configuration() {} // Prevents initialization
     
-    public static String RADIUS_SERVER_IP = "localhost";
+    public static String RADIUS_SERVER_IP = "192.168.0.111";
     public static int RADIUS_SERVER_PORT = DEFAULT_RADIUS_PORT;
-    public static String RADIUS_SECRET_KEY = "testing123";
+    public static String RADIUS_SECRET_KEY = "RADIUSoffice";
     
     // MySQL DataBase
     public static String MySQL_USER = "root";

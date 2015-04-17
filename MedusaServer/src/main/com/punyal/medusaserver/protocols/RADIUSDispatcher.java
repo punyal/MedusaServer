@@ -14,18 +14,25 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  ******************************************************************************/
-package com.punyal.medusaserver.logger;
+package com.punyal.medusaserver.protocols;
 
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import com.punyal.jrad.core.radius.Message;
+import com.punyal.medusaserver.core.security.TicketEngine;
+import com.punyal.medusaserver.utils.Packetizer;
+import org.eclipse.californium.core.server.resources.CoapExchange;
 
-public class Logger {
+public class RADIUSDispatcher {
+    private RADIUSDispatcher () {}
     
-    private Logger() {}
-    
-    public static void normal(String text) {
-        System.out.println(
-                (new SimpleDateFormat("MM/dd/yyyy h:mm:ss a ")).format(new Date()) + text);
+    public static void dispatchResponse(Packetizer resolution, TicketEngine ticketEngine) {
+        Message radResponse = (Message)resolution.Response;
+        switch(resolution.RequestProtocol) {
+            case CoAP:
+                CoAPDispatcher.dispatchResponse(radResponse, (CoapExchange)resolution.Request, ticketEngine);
+                break;
+            case REST:
+                break;
+            default: throw new IllegalArgumentException("Unknown Protocol " + resolution.RequestProtocol); 
+        }
     }
 }

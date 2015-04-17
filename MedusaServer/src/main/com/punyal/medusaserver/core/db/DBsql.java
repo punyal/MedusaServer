@@ -21,15 +21,18 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DBsql {
-    Connection connection;
+    private static final Logger LOGGER = Logger.getLogger(DBsql.class.getCanonicalName());
+    private Connection connection;
     
     public DBsql(String user, String password, String server) {
         try {
             connection = DriverManager.getConnection("jdbc:mysql://"+server+"/rd", user, password);
         } catch (SQLException ex) {
-             System.err.println("Unable to connect to database");
+             LOGGER.log(Level.WARNING, "Unable to connect to database");
         }
     }
     
@@ -44,7 +47,7 @@ public class DBsql {
                     try {
                         resultSet = statement.executeQuery(query);
                     } catch(SQLException e) {
-                        System.err.println("Unable to create the Query");
+                        LOGGER.log(Level.WARNING, "Unable to create the Query");
                     }
                 } else {
                     System.err.println("Null statement");
