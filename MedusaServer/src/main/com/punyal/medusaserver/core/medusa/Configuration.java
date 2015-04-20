@@ -21,19 +21,13 @@ import static com.punyal.jrad.core.radius.RADIUS.DEFAULT_RADIUS_PORT;
 public class Configuration {
     private Configuration() {} // Prevents initialization
     
-    public static String RADIUS_SERVER_IP = "192.168.0.111";
-    public static int RADIUS_SERVER_PORT = DEFAULT_RADIUS_PORT;
-    public static String RADIUS_SECRET_KEY = "RADIUSoffice";
+    // Security Configuration
+    public static String AUTHENTICATION_SECRET_KEY = "Arrowhead";
     
-    // MySQL DataBase
-    public static String MySQL_USER = "root";
-    public static String MySQL_USER_PASSWORD = "Arrowhead2015&&";
-    public static String MySQL_SERVER = "localhost";
-        
     // Performance Constants
-    public static long AUTHENTICATION_CODE_TIMEOUT = 4000; // 1000*4 = 10000(4s)
+    public static long AUTHENTICATION_CODE_TIMEOUT = 100000; // 1000*10 = 10000(10s)
     public static long RADIUS_TIMEOUT = 1000; // 1000*1 (1s)
-    public static long GENERIC_TICKET_TIMEOUT = 10000; // 1000*60*10 = 600000 (10m)
+    public static long GENERIC_TICKET_TIMEOUT = 600000; // 1000*60*10 = 600000 (10m)
     
     // Message Format
     public static String JSON_USER_NAME = "userName";
@@ -41,4 +35,14 @@ public class Configuration {
     public static String JSON_TIME_TO_EXPIRE = "ExpireTime";
     public static String JSON_AUTHENTICATOR = "Authenticator";
     public static String JSON_TICKET = "Ticket";
+    
+    // RADIUS Configuration
+    public static String RADIUS_SERVER_IP = "192.168.0.111";
+    public static int RADIUS_SERVER_PORT = DEFAULT_RADIUS_PORT;
+    public static String RADIUS_SECRET_KEY = "RADIUSoffice";
+    
+    // MySQL Configuration
+    public static String MySQL_USER = "root";
+    public static String MySQL_USER_PASSWORD = "Arrowhead2015&&";
+    public static String MySQL_SERVER = "localhost";
 }

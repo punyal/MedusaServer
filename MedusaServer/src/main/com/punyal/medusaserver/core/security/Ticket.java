@@ -25,10 +25,10 @@ public class Ticket  implements Comparable<Ticket>{
     private String userName;
     private String userPass;
     private byte ticket[];
-    private final byte authenticator[];
+    private final String authenticator;
     private long expireTime;
             
-    public Ticket(InetAddress address, byte[] authenticator) {
+    public Ticket(InetAddress address, String authenticator) {
         this.address = address;
         userName = null;
         userPass = null;
@@ -65,7 +65,7 @@ public class Ticket  implements Comparable<Ticket>{
         return ticket;
     }
     
-    public byte[] getAuthenticator() {
+    public String getAuthenticator() {
         return authenticator;
     }
     

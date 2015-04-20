@@ -17,12 +17,13 @@
 package com.punyal.medusaserver.core.security;
 
 import com.punyal.medusaserver.core.db.Query;
-import static com.punyal.medusaserver.core.medusa.Configuration.GENERIC_TICKET_TIMEOUT;
+import static com.punyal.medusaserver.core.medusa.Configuration.*;
 import com.punyal.medusaserver.utils.UnitConversion;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.ListIterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.simple.JSONObject;
@@ -47,10 +48,10 @@ public class TicketEngine extends Thread{
             
             // CLEAN OLD TICKETS & AUTHENTICATORS ==============================
             long actualTime = (new Date()).getTime();
-            while((!this.getTicketList().isEmpty())  && (this.getTicketList().get(0).getExpireTime() < actualTime)) {
-                Ticket tmp = this.getTicketList().remove(0);
+            while((!ticketList.isEmpty())  && (ticketList.get(0).getExpireTime() < actualTime)) {
+                Ticket tmp = ticketList.remove(0);
                 if(tmp.getTicket() == null)
-                    System.err.println("Authenticator EXPIRED ["+ UnitConversion.ByteArray2Hex(tmp.getAuthenticator())
+                    System.err.println("Authenticator EXPIRED ["+ tmp.getAuthenticator()
                             +"] @ "+tmp.getAddress());
                 else
                     System.err.println("Ticket EXPIRED ["+UnitConversion.ByteArray2Hex(tmp.getTicket())
@@ -73,60 +74,153 @@ public class TicketEngine extends Thread{
         this.running = false;
     }
     
-    public String generateAuthenticator(InetAddress address) {
-        Ticket ticket = new Ticket(address, randomizer.generate16bytes());
+    public synchronized String generateAuthenticator(InetAddress address) {
+        Ticket ticket = new Ticket(address, UnitConversion.ByteArray2Hex(randomizer.generate16bytes()));
         ticketList.add(ticket);
         Collections.sort(ticketList);
         JSONObject json = new JSONObject();
-        json.put("Authenticator", UnitConversion.ByteArray2Hex(ticket.getAuthenticator()));
-        json.put("ExpireTime", ticket.getExpireTime());
+        json.put(JSON_AUTHENTICATOR, ticket.getAuthenticator());
+        json.put(JSON_TIME_TO_EXPIRE, ticket.getExpireTime());
         return json.toString();
     }
     
-    public void printList() {
+    private synchronized void removeByTicket(Ticket ticket) {
+        ticketList.remove(ticket);
+    }
+    
+    private synchronized void removeByAuthenticator(String authenticator) {
+        ticketList.stream().forEach((ticket) -> {
+            if( ticket.getAuthenticator().equals(authenticator) )
+                ticketList.remove(ticket);
+        });
+    }
+    
+    private synchronized void removeByUser(String userName) {
+        ticketList.stream().forEach((ticket) -> {
+            if( ticket.getUserName().equals(userName) )
+                ticketList.remove(ticket);
+        });
+    }
+    
+    private synchronized Ticket findByUser(String userName) {
+        int i=0;
+        while(ticketList.size() > i) {
+            if(ticketList.get(i).getUserName().equals(userName))
+                return ticketList.get(i);
+            i++;
+        }
+        return null;
+    }
+    
+    private ArrayList<Ticket> getPossibleAuthenticationTicketsByAddress(InetAddress address) {
+        ArrayList<Ticket> possibleTickets = new ArrayList<>();
+        int i=0;
+        while(ticketList.size() > i) {
+            if(ticketList.get(i).getAddress().equals(address))
+                possibleTickets.add(ticketList.get(i));
+            i++;
+        }
+        return possibleTickets;
+    }
+    
+    private ArrayList<Ticket> getPossibleTicketsByAddress(InetAddress address, String userName) {
+        ArrayList<Ticket> possibleTickets = new ArrayList<>();
+        int i=0;
+        while(ticketList.size() > i) {
+            if(ticketList.get(i).getAddress().equals(address) && ticketList.get(i).getUserName().equals(userName))
+                possibleTickets.add(ticketList.get(i));
+            i++;
+        }
+        return possibleTickets;
+    }
+    
+    public synchronized String checkUserPass(Query dbQuery, InetAddress address, String userName, String cryptedPass) {
+        ArrayList<Ticket> possibleList = getPossibleAuthenticationTicketsByAddress(address);
+        if(possibleList.isEmpty()) {
+            System.out.println("Possible List Empty!");
+            return null;
+        }
+        
+        String decodedPass = "mulle";
+        /*String decodedPass = dbQuery.getPass4User(userName);
+        if(decodedPass == null) {
+            System.out.println("No DB data for user " + userName);
+            return null;
+        }*/
+        
+        int i=0;
+        String validPass = null;
+        while(possibleList.size() > i) {
+            validPass = Cryptonizer.encrypt(AUTHENTICATION_SECRET_KEY, possibleList.get(i).getAuthenticator(), decodedPass);
+            System.out.println(validPass);
+            if(validPass.equals(cryptedPass))
+                break;
+            i++;
+        }
+        
+        if(possibleList.size() == i) {
+            System.out.println("No valid passwords on the list");
+            return null;
+        }
+        
+        if(validPass == null) {
+            System.out.println("No valid Password!");
+            return null;
+        }
+        
+        if(validPass.equals(cryptedPass)) {
+            possibleList.get(i).setUserName(userName);
+            possibleList.get(i).setUserPass(decodedPass);
+            return decodedPass;
+        }
+        
+        return null;
+    }
+    
+    public synchronized String createTicket4User(Query dbQuery, InetAddress address, String userName, long expireTime) {
+        ArrayList<Ticket> possibleList = getPossibleTicketsByAddress(address, userName);
+        if(possibleList.isEmpty()) {
+            System.out.println("Possible List Empty!");
+            return null;
+        }
+        if(possibleList.size() > 1) {
+            System.out.println("More than one same-user");
+            // TODO: take action here.
+            return null;
+        }
+        
+        Ticket ticket = possibleList.get(0);
+        
+        if(ticket.getTicket() == null) {
+            ticket.setUserName(userName);
+            ticket.setTicket(randomizer.generate8bytes());
+            ticket.setExpireTime(expireTime);
+            Collections.sort(ticketList);
+        }
+        
+        JSONObject json = new JSONObject();
+        json.put(JSON_TICKET, UnitConversion.ByteArray2Hex(ticket.getTicket()));
+        json.put(JSON_TIME_TO_EXPIRE, ticket.getExpireTime());
+        return json.toString();
+    }
+    
+    public synchronized ArrayList<Ticket> getTicketList() {
+        return ticketList;
+    }
+    
+    public synchronized void printList(ArrayList<Ticket> list) {
         System.out.println("-------- Tickets --------");
         
-        ticketList.stream().forEach((ticket) -> {
+        list.stream().forEach((ticket) -> {
             System.out.println("IP[" + ticket.getAddress() +
                     "] UserName[" + ticket.getUserName() +
                     "] UserPass[" + ticket.getUserPass()+
                     "] Ticket[" + UnitConversion.ByteArray2Hex(ticket.getTicket())+
-                    "] Authenticator[" + UnitConversion.ByteArray2Hex(ticket.getAuthenticator())+
+                    "] Authenticator[" + ticket.getAuthenticator()+
                     "] ExpireTime[" + UnitConversion.Timestamp2String(ticket.getExpireTime())+
                     "]" );
         });
         
         System.out.println("-------------------------");
-    }
-    
-    public boolean checkUserPass(Query dbQuery, InetAddress address, String userName, String cryptedPass) {
-        
-        return true;
-    }
-    
-    public ArrayList<Ticket> getTicketList() {
-        return ticketList;
-    }
-    
-    public String createTicket4User(Query dbQuery, InetAddress address, String userName, long expireTime) {
-        if(dbQuery.getPass4User(userName) == null)
-            return null;
-        if(ticketList.isEmpty())
-            return null;
-        
-        // TODO: finish this correctly
-        Ticket ticket = ticketList.get(0);
-        ticket.setUserName(userName);
-        ticket.setTicket(randomizer.generate8bytes());
-        if(expireTime == 0)
-            ticket.setExpireTime((new Date()).getTime() + (GENERIC_TICKET_TIMEOUT));
-        else
-            ticket.setExpireTime(expireTime);
-        
-        Collections.sort(ticketList);
-        JSONObject json = new JSONObject();
-        json.put("Ticket", UnitConversion.ByteArray2Hex(ticket.getTicket()));
-        json.put("ExpireTime", ticket.getExpireTime());
-        return json.toString();
     }
 }

@@ -17,14 +17,12 @@
 package com.punyal.medusaserver.protocols;
 
 import com.punyal.jrad.core.radius.Message;
+import static com.punyal.jrad.core.radius.RADIUS.Type.*;
 import com.punyal.medusaserver.core.db.Query;
 import com.punyal.medusaserver.core.eventHandler.EventConstants;
 import com.punyal.medusaserver.core.eventHandler.EventMessage;
-import com.punyal.medusaserver.core.medusa.Configuration;
 import static com.punyal.medusaserver.core.medusa.Configuration.*;
-import com.punyal.medusaserver.core.security.Ticket;
 import com.punyal.medusaserver.core.security.TicketEngine;
-import com.punyal.medusaserver.utils.UnitConversion;
 import java.util.Date;
 import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 import org.eclipse.californium.core.server.resources.CoapExchange;
@@ -50,18 +48,21 @@ public class CoAPDispatcher {
                 if(userName == null || userPass == null) {
                     coapReq.respond(ResponseCode.NOT_ACCEPTABLE, "Wrong user-password format");
                 }else{
-                    // Check if the pass is valid
-                    //System.out.println("Correct PassWord " + dbQuery.getPass4User(userPass[0]));
-                    if(!ticketEngine.checkUserPass(dbQuery, coapReq.getSourceAddress(), userName, userPass))
-                        coapReq.respond(ResponseCode.UNAUTHORIZED, "Wrong user-password");
+                    userPass = ticketEngine.checkUserPass(dbQuery, coapReq.getSourceAddress(), userName, userPass);
                     
-                    RadiusAuthenticationThread rat = new RadiusAuthenticationThread(
+                    ticketEngine.printList(ticketEngine.getTicketList()); // TODO: delete xD
+                    
+                    if(userPass == null) {
+                        coapReq.respond(ResponseCode.UNAUTHORIZED, "Bad Encryption"); // Change this message to a generic to increase the security
+                    } else {
+                        RadiusAuthenticationThread rat = new RadiusAuthenticationThread(
                         EventConstants.Protocol.CoAP,
                         coapReq,
                         userName,
                         userPass);
-                    rat.addListener(globalEvent);
-                    rat.start();
+                        rat.addListener(globalEvent);
+                        rat.start();
+                    }
                 }
                 break;
             default:
@@ -73,12 +74,20 @@ public class CoAPDispatcher {
     public static void dispatchResponse(Message radRequest, CoapExchange coapReq, TicketEngine ticketEngine, Query dbQuery) {
         if((Message)radRequest.response == null)
             coapReq.respond(ResponseCode.INTERNAL_SERVER_ERROR, "Timeout");
-        else {
-            String userName = radRequest.getAttributes(0).getValueString();
+        else {            
             switch(radRequest.response.getCode()){
                 case ACCESS_ACCEPT:
                     // TODO: Create the ticket and extra information with the RADIUS response
-                    String ticketInfo = ticketEngine.createTicket4User(dbQuery, coapReq.getSourceAddress(), userName, 0);
+                    String userName = radRequest.getAttributeByType(USER_NAME).getValueString();
+                    long timeout = Long.parseLong(radRequest.getAttributeByType(SESSION_TIMEOUT).getValueString());
+                    
+                    if(timeout > 0 )
+                        timeout = (new Date()).getTime() + timeout;
+                    else
+                        timeout = (new Date()).getTime() + GENERIC_TICKET_TIMEOUT;
+                    
+                    String ticketInfo = ticketEngine.createTicket4User(dbQuery, coapReq.getSourceAddress(), userName, timeout);
+                    
                     if(ticketInfo == null) {
                         coapReq.respond(ResponseCode.INTERNAL_SERVER_ERROR, "Ticket Generation Error");
                     }
