@@ -42,9 +42,12 @@ public class CoAPDispatcher {
                 String userPass = null;
                 
                 JSONObject json = (JSONObject)JSONValue.parse(coapReq.getRequestText());
-                userName = (String) json.get(JSON_USER_NAME);
-                userPass = (String) json.get(JSON_USER_PASSWORD);
-                
+                try {
+                    userName = (String) json.get(JSON_USER_NAME);
+                    userPass = (String) json.get(JSON_USER_PASSWORD);
+                } catch(Exception e) {
+                    System.err.println("JSON eX "+ e);
+                }
                 if(userName == null || userPass == null) {
                     coapReq.respond(ResponseCode.NOT_ACCEPTABLE, "Wrong user-password format");
                 }else{
@@ -78,13 +81,19 @@ public class CoAPDispatcher {
             switch(radRequest.response.getCode()){
                 case ACCESS_ACCEPT:
                     // TODO: Create the ticket and extra information with the RADIUS response
+                    
                     String userName = radRequest.getAttributeByType(USER_NAME).getValueString();
                     long timeout = Long.parseLong(radRequest.getAttributeByType(SESSION_TIMEOUT).getValueString());
+                    
                     
                     if(timeout > 0 )
                         timeout = (new Date()).getTime() + timeout;
                     else
-                        timeout = (new Date()).getTime() + GENERIC_TICKET_TIMEOUT;
+                        timeout = (new Date()).getTime() + (GENERIC_TICKET_TIMEOUT * 1000);
+                    
+                    
+                    System.out.println("RADIUS Info " + radRequest.getAttributeByType(SESSION_TIMEOUT).getValueString() +
+                            " Long " + timeout);
                     
                     String ticketInfo = ticketEngine.createTicket4User(dbQuery, coapReq.getSourceAddress(), userName, timeout);
                     

@@ -74,6 +74,7 @@ public class EventHandler extends Thread {
             // DISPATCHER ======================================================
             if(!messageQueue.isEmpty()) {
                 EventMedusa evt = messageQueue.remove(0);
+                System.out.println("Protocol :" + evt.getProtocol());
                 switch(evt.getProtocol()) {
                     case RADIUS:
                         RADIUSDispatcher.dispatchResponse((Packetizer)evt.getSource(), ticketEngine, dbQuery);
