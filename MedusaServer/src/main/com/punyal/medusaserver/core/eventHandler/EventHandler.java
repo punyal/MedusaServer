@@ -18,13 +18,10 @@ package com.punyal.medusaserver.core.eventHandler;
 
 import com.punyal.medusaserver.core.db.Query;
 import static com.punyal.medusaserver.core.medusa.Configuration.*;
-import com.punyal.medusaserver.core.security.Ticket;
 import com.punyal.medusaserver.core.security.TicketEngine;
 import com.punyal.medusaserver.protocols.*;
 import com.punyal.medusaserver.utils.Packetizer;
-import com.punyal.medusaserver.utils.UnitConversion;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,6 +45,7 @@ public class EventHandler extends Thread {
      * Constructor to set the dispatcher
      */
     public EventHandler() {
+        running = false;
         this.globalEvent = new EventMessage() {
             @Override
             public void fireEvent(EventMedusa evt) {
@@ -63,10 +61,12 @@ public class EventHandler extends Thread {
         //System.out.println("Event Handler running...");
         running = true;
         Logger.getLogger(EventHandler.class.getCanonicalName()).setLevel(Level.ALL);
+        LOGGER.log(Level.INFO, "Thread [{0}] running", EventHandler.class.getSimpleName());
         /**
          * Initialization of all subsystems
          */
         ticketEngine = new TicketEngine();
+        ticketEngine.start();
         dbQuery = new Query(MySQL_USER, MySQL_USER_PASSWORD, MySQL_SERVER);
         messageQueue = new ArrayList<>();
         
@@ -90,38 +90,19 @@ public class EventHandler extends Thread {
             }
             // DISPATCHER (END) ================================================ 
             
-            // CLEAN OLD TICKETS & AUTHENTICATORS ==============================
-            long actualTime = (new Date()).getTime();
-            while((!ticketEngine.getTicketList().isEmpty())  && (ticketEngine.getTicketList().get(0).getExpireTime() < actualTime)) {
-                Ticket tmp = ticketEngine.getTicketList().remove(0);
-                if(tmp.getTicket() == null)
-                    System.err.println("Authenticator EXPIRED ["+ UnitConversion.ByteArray2Hex(tmp.getAuthenticator())
-                            +"] @ "+tmp.getAddress());
-                else
-                    System.err.println("Ticket EXPIRED ["+UnitConversion.ByteArray2Hex(tmp.getTicket())
-                            +"] for user \""+tmp.getUserName()+"\" @ "+tmp.getAddress());
-            }
-            // CLEAN OLD TICKETS & AUTHENTICATORS (END)=========================
-            
-            
-            
-            
-            
             // Sleep 1ms to prevent synchronization errors it's possible to remove with other code :)
             try {
                 sleep(1);
             } catch (InterruptedException ex) {
                 Logger.getLogger(EventHandler.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
-            
+            }   
         }
-        LOGGER.log(Level.WARNING, "Shutting down EventHandler");
-        
+        LOGGER.log(Level.WARNING, "Thread [{0}] dying", EventHandler.class.getSimpleName());
     }
     
     public void ShutDown() {
         this.running = false;
+        ticketEngine.ShutDown();
     }
     
     /**

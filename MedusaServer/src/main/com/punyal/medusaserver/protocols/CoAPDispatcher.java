@@ -20,6 +20,7 @@ import com.punyal.jrad.core.radius.Message;
 import com.punyal.medusaserver.core.db.Query;
 import com.punyal.medusaserver.core.eventHandler.EventConstants;
 import com.punyal.medusaserver.core.eventHandler.EventMessage;
+import com.punyal.medusaserver.core.medusa.Configuration;
 import static com.punyal.medusaserver.core.medusa.Configuration.*;
 import com.punyal.medusaserver.core.security.Ticket;
 import com.punyal.medusaserver.core.security.TicketEngine;
@@ -27,6 +28,8 @@ import com.punyal.medusaserver.utils.UnitConversion;
 import java.util.Date;
 import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 import org.eclipse.californium.core.server.resources.CoapExchange;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 public class CoAPDispatcher {
     private CoAPDispatcher() {}
@@ -34,26 +37,29 @@ public class CoAPDispatcher {
     public static void dispatchRequest(CoapExchange coapReq, Query dbQuery, TicketEngine ticketEngine, EventMessage globalEvent) {
         switch(coapReq.getRequestCode()) {
             case GET: // Request a Authenticator Code
-                String newAuthenticator = UnitConversion.ByteArray2Hex(ticketEngine.generateAuthenticator(coapReq.getSourceAddress()));
-                //ticketEngine.printList();
-                // Save the information at this point
-                coapReq.respond("Authenticator [" + newAuthenticator + "]");
+                coapReq.respond(ticketEngine.generateAuthenticator(coapReq.getSourceAddress()));
                 break;
             case PUT: // Request a valid Ticket
-                String[] userPass = coapReq.getRequestText().split("@");
-                if(userPass.length != 2) {
+                String userName = null;
+                String userPass = null;
+                
+                JSONObject json = (JSONObject)JSONValue.parse(coapReq.getRequestText());
+                userName = (String) json.get(JSON_USER_NAME);
+                userPass = (String) json.get(JSON_USER_PASSWORD);
+                
+                if(userName == null || userPass == null) {
                     coapReq.respond(ResponseCode.NOT_ACCEPTABLE, "Wrong user-password format");
                 }else{
                     // Check if the pass is valid
                     //System.out.println("Correct PassWord " + dbQuery.getPass4User(userPass[0]));
-                    if(!ticketEngine.checkUserPass(dbQuery, coapReq.getSourceAddress(), userPass[0], userPass[1]))
+                    if(!ticketEngine.checkUserPass(dbQuery, coapReq.getSourceAddress(), userName, userPass))
                         coapReq.respond(ResponseCode.UNAUTHORIZED, "Wrong user-password");
                     
                     RadiusAuthenticationThread rat = new RadiusAuthenticationThread(
                         EventConstants.Protocol.CoAP,
                         coapReq,
-                        userPass[0],
-                        userPass[1]);
+                        userName,
+                        userPass);
                     rat.addListener(globalEvent);
                     rat.start();
                 }
@@ -72,12 +78,12 @@ public class CoAPDispatcher {
             switch(radRequest.response.getCode()){
                 case ACCESS_ACCEPT:
                     // TODO: Create the ticket and extra information with the RADIUS response
-                    Ticket tmpTicket = ticketEngine.createTicket4User(dbQuery, coapReq.getSourceAddress(), userName, 0);
-                    if(tmpTicket == null) {
+                    String ticketInfo = ticketEngine.createTicket4User(dbQuery, coapReq.getSourceAddress(), userName, 0);
+                    if(ticketInfo == null) {
                         coapReq.respond(ResponseCode.INTERNAL_SERVER_ERROR, "Ticket Generation Error");
                     }
                     else {
-                        coapReq.respond("Ticket [" + UnitConversion.ByteArray2Hex(tmpTicket.getTicket()) + "]");
+                        coapReq.respond(ticketInfo);
                     }
                     break;
                 case ACCESS_REJECT:

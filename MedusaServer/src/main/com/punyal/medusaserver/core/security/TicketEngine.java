@@ -23,22 +23,64 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.json.simple.JSONObject;
 
-public class TicketEngine {
+public class TicketEngine extends Thread{
+    private static final Logger LOGGER = Logger.getLogger(TicketEngine.class.getCanonicalName());
+    private boolean running;
     private final Randomizer randomizer;
     private ArrayList<Ticket> ticketList;
     
     public TicketEngine() {
+        running = false;
         randomizer = new Randomizer();
         ticketList = new ArrayList<>();
     }
     
-    public byte[] generateAuthenticator(InetAddress address) {
+    public void run() {
+        running = true;
+        LOGGER.log(Level.INFO, "Thread [{0}] running", TicketEngine.class.getSimpleName());
+        
+        while(running) {
+            
+            // CLEAN OLD TICKETS & AUTHENTICATORS ==============================
+            long actualTime = (new Date()).getTime();
+            while((!this.getTicketList().isEmpty())  && (this.getTicketList().get(0).getExpireTime() < actualTime)) {
+                Ticket tmp = this.getTicketList().remove(0);
+                if(tmp.getTicket() == null)
+                    System.err.println("Authenticator EXPIRED ["+ UnitConversion.ByteArray2Hex(tmp.getAuthenticator())
+                            +"] @ "+tmp.getAddress());
+                else
+                    System.err.println("Ticket EXPIRED ["+UnitConversion.ByteArray2Hex(tmp.getTicket())
+                            +"] for user \""+tmp.getUserName()+"\" @ "+tmp.getAddress());
+            }
+            // CLEAN OLD TICKETS & AUTHENTICATORS (END)=========================
+            
+            // Sleep 1ms to prevent synchronization errors it's possible to remove with other code :)
+            try {
+                sleep(1);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(TicketEngine.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        LOGGER.log(Level.WARNING, "Thread [{0}] dying", TicketEngine.class.getSimpleName());        
+    }
+    
+    public void ShutDown() {
+        this.running = false;
+    }
+    
+    public String generateAuthenticator(InetAddress address) {
         Ticket ticket = new Ticket(address, randomizer.generate16bytes());
         ticketList.add(ticket);
         Collections.sort(ticketList);
-        return ticket.getAuthenticator();
+        JSONObject json = new JSONObject();
+        json.put("Authenticator", UnitConversion.ByteArray2Hex(ticket.getAuthenticator()));
+        json.put("ExpireTime", ticket.getExpireTime());
+        return json.toString();
     }
     
     public void printList() {
@@ -54,7 +96,6 @@ public class TicketEngine {
                     "]" );
         });
         
-        
         System.out.println("-------------------------");
     }
     
@@ -67,21 +108,25 @@ public class TicketEngine {
         return ticketList;
     }
     
-    public Ticket createTicket4User(Query dbQuery, InetAddress address, String userName, long expireTime) {
+    public String createTicket4User(Query dbQuery, InetAddress address, String userName, long expireTime) {
         if(dbQuery.getPass4User(userName) == null)
             return null;
         if(ticketList.isEmpty())
             return null;
         
         // TODO: finish this correctly
-        Ticket tmpTicket = ticketList.get(0);
-        tmpTicket.setUserName(userName);
-        tmpTicket.setTicket(randomizer.generate8bytes());
+        Ticket ticket = ticketList.get(0);
+        ticket.setUserName(userName);
+        ticket.setTicket(randomizer.generate8bytes());
         if(expireTime == 0)
-            tmpTicket.setExpireTime((new Date()).getTime() + (GENERIC_TICKET_TIMEOUT));
+            ticket.setExpireTime((new Date()).getTime() + (GENERIC_TICKET_TIMEOUT));
         else
-            tmpTicket.setExpireTime(expireTime);
+            ticket.setExpireTime(expireTime);
         
-        return ticketList.get(0);
+        Collections.sort(ticketList);
+        JSONObject json = new JSONObject();
+        json.put("Ticket", UnitConversion.ByteArray2Hex(ticket.getTicket()));
+        json.put("ExpireTime", ticket.getExpireTime());
+        return json.toString();
     }
 }
