@@ -45,6 +45,8 @@ public class CoAPDispatcher {
                 try {
                     userName = (String) json.get(JSON_USER_NAME);
                     userPass = (String) json.get(JSON_USER_PASSWORD);
+                    
+                    System.out.println("Incoming "+userName + ":" + userPass);
                 } catch(Exception e) {
                     System.err.println("JSON eX "+ e);
                 }
@@ -83,17 +85,18 @@ public class CoAPDispatcher {
                     // TODO: Create the ticket and extra information with the RADIUS response
                     
                     String userName = radRequest.getAttributeByType(USER_NAME).getValueString();
-                    long timeout = Long.parseLong(radRequest.getAttributeByType(SESSION_TIMEOUT).getValueString());
+                    //long timeout = Long.parseLong(radRequest.getAttributeByType(SESSION_TIMEOUT).getValueString());
                     
                     
-                    if(timeout > 0 )
-                        timeout = (new Date()).getTime() + timeout;
-                    else
-                        timeout = (new Date()).getTime() + (GENERIC_TICKET_TIMEOUT * 1000);
+                    //if(timeout > 0 )
+                    //    timeout = (new Date()).getTime() + timeout;
+                    //else
+                    //    timeout = (new Date()).getTime() + (GENERIC_TICKET_TIMEOUT * 1000);
                     
+                    long timeout = (new Date()).getTime() + GENERIC_TICKET_TIMEOUT;
                     
-                    System.out.println("RADIUS Info " + radRequest.getAttributeByType(SESSION_TIMEOUT).getValueString() +
-                            " Long " + timeout);
+                    //System.out.println("RADIUS Info " + radRequest.getAttributeByType(SESSION_TIMEOUT).getValueString() +
+                    //        " Long " + timeout);
                     
                     String ticketInfo = ticketEngine.createTicket4User(dbQuery, coapReq.getSourceAddress(), userName, timeout);
                     
@@ -102,7 +105,7 @@ public class CoAPDispatcher {
                     }
                     else {
                         coapReq.respond(ticketInfo);
-                    }
+                    } 
                     break;
                 case ACCESS_REJECT:
                     coapReq.respond(ResponseCode.UNAUTHORIZED, "Not Authorized");

@@ -141,12 +141,11 @@ public class TicketEngine extends Thread{
             return null;
         }
         
-        String decodedPass = "mulle";
-        /*String decodedPass = dbQuery.getPass4User(userName);
+        String decodedPass = dbQuery.getPass4User(userName);
         if(decodedPass == null) {
             System.out.println("No DB data for user " + userName);
             return null;
-        }*/
+        }
         
         int i=0;
         String validPass = null;

@@ -25,9 +25,9 @@ public class Configuration {
     public static String AUTHENTICATION_SECRET_KEY = "Arrowhead";
     
     // Performance Constants
-    public static long AUTHENTICATION_CODE_TIMEOUT = 100000; // 1000*10 = 10000(10s)
+    public static long AUTHENTICATION_CODE_TIMEOUT = 10000; // 1000*10 = 10000(10s)
     public static long RADIUS_TIMEOUT = 1000; // 1000*1 (1s)
-    public static long GENERIC_TICKET_TIMEOUT = 600000; // 1000*60*10 = 600000 (10m)
+    public static long GENERIC_TICKET_TIMEOUT = 30000; // 1000*60*10 = 600000 (10m)
     
     // Message Format
     public static String JSON_USER_NAME = "userName";
@@ -37,9 +37,9 @@ public class Configuration {
     public static String JSON_TICKET = "Ticket";
     
     // RADIUS Configuration
-    public static String RADIUS_SERVER_IP = "192.168.0.111";
+    public static String RADIUS_SERVER_IP = "localhost";
     public static int RADIUS_SERVER_PORT = DEFAULT_RADIUS_PORT;
-    public static String RADIUS_SECRET_KEY = "RADIUSoffice";
+    public static String RADIUS_SECRET_KEY = "testing123";
     
     // MySQL Configuration
     public static String MySQL_USER = "root";
