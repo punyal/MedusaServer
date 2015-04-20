@@ -22,6 +22,7 @@
 	<li>FreeRadius 2.2.6</li>
 	<li>RadiusDesk 2.6.2 or configure FreeRadius with mysql</li>
 	<li>MySQL-Connector&nbsp;5.1.35</li>
+	<li>JSON-Simple&nbsp;1.1.1</li>
 </ul>
 
 <p><strong>Version Revision:</strong></p>
@@ -31,7 +32,6 @@
 
 	<ul>
 		<li>Adds support to CoAP with Challenge-Response Method.</li>
-		<li>Adds support to REST</li>
 	</ul>
 	</li>
 </ul>
