@@ -204,7 +204,7 @@ public class TicketEngine extends Thread{
         
         JSONObject json = new JSONObject();
         json.put(JSON_TICKET, UnitConversion.ByteArray2Hex(ticket.getTicket()));
-        json.put(JSON_TIME_TO_EXPIRE, ticket.getExpireTime());
+        json.put(JSON_TIME_TO_EXPIRE, ticket.getExpireTime() - (new Date()).getTime()); // Recalculate to solve synchronization issues
         return json.toString();
     }
     

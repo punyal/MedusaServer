@@ -34,8 +34,6 @@ public class JSONtest {
         System.out.println(json2.get("name"));
         System.out.println(json2.get("authenticator"));
         
-   
-        
         System.out.println("# Test (STOP)");
     }
 
