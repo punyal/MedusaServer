@@ -19,6 +19,7 @@ package com.punyal.medusaserver.core.eventHandler;
 import com.punyal.medusaserver.core.db.Query;
 import static com.punyal.medusaserver.core.medusa.Configuration.*;
 import com.punyal.medusaserver.core.security.TicketEngine;
+import com.punyal.medusaserver.logger.Reporter;
 import com.punyal.medusaserver.protocols.*;
 import com.punyal.medusaserver.utils.Packetizer;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ public class EventHandler extends Thread {
     private final EventMessage globalEvent;
     private TicketEngine ticketEngine;
     private Query dbQuery;
+    private Reporter reporter;
     
     private List<EventMedusa> messageQueue;
     
@@ -68,6 +70,8 @@ public class EventHandler extends Thread {
         ticketEngine = new TicketEngine();
         ticketEngine.start();
         dbQuery = new Query(MySQL_USER, MySQL_USER_PASSWORD, MySQL_SERVER);
+        reporter = new Reporter(ticketEngine.getTicketList());
+        reporter.start();
         messageQueue = new ArrayList<>();
         
         while(running) {

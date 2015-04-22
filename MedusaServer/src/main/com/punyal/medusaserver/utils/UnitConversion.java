@@ -63,6 +63,6 @@ public class UnitConversion {
     }
     
     public static String Timestamp2String(long timestamp) {
-        return new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.S").format(timestamp);
+        return new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(timestamp);
     }
 }
