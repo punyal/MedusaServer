@@ -35,9 +35,11 @@ public class CoAPDispatcher {
     public static void dispatchRequest(CoapExchange coapReq, Query dbQuery, TicketEngine ticketEngine, EventMessage globalEvent) {
         switch(coapReq.getRequestCode()) {
             case GET: // Request a Authenticator Code
+                System.out.println("Request Authenticator");
                 coapReq.respond(ticketEngine.generateAuthenticator(coapReq.getSourceAddress()));
                 break;
             case PUT: // Request a valid Ticket
+                System.out.println("Request Ticket");
                 String userName = null;
                 String userPass = null;
                 
@@ -45,8 +47,6 @@ public class CoAPDispatcher {
                 try {
                     userName = (String) json.get(JSON_USER_NAME);
                     userPass = (String) json.get(JSON_USER_PASSWORD);
-                    
-                    System.out.println("Incoming "+userName + ":" + userPass);
                 } catch(Exception e) {
                     System.err.println("JSON eX "+ e);
                 }
@@ -55,7 +55,7 @@ public class CoAPDispatcher {
                 }else{
                     userPass = ticketEngine.checkUserPass(dbQuery, coapReq.getSourceAddress(), userName, userPass);
                     
-                    ticketEngine.printList(ticketEngine.getTicketList()); // TODO: delete xD
+                    //ticketEngine.printList(ticketEngine.getTicketList()); // TODO: delete xD
                     
                     if(userPass == null) {
                         coapReq.respond(ResponseCode.UNAUTHORIZED, "Bad Encryption"); // Change this message to a generic to increase the security

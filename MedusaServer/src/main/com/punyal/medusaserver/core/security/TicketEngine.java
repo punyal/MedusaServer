@@ -123,12 +123,16 @@ public class TicketEngine extends Thread{
         return possibleTickets;
     }
     
-    private ArrayList<Ticket> getPossibleTicketsByAddress(InetAddress address, String userName) {
+    private synchronized ArrayList<Ticket> getPossibleTicketsByAddress(InetAddress address, String userName) {
         ArrayList<Ticket> possibleTickets = new ArrayList<>();
         int i=0;
         while(ticketList.size() > i) {
-            if(ticketList.get(i).getAddress().equals(address) && ticketList.get(i).getUserName().equals(userName))
-                possibleTickets.add(ticketList.get(i));
+            try {
+                if(ticketList.get(i).getAddress().equals(address) && ticketList.get(i).getUserName().equals(userName))
+                    possibleTickets.add(ticketList.get(i));
+            } catch(NullPointerException e) {
+                LOGGER.log(Level.WARNING, "Get Possible Tickets By Address exception " + e);
+            }
             i++;
         }
         return possibleTickets;
@@ -151,7 +155,7 @@ public class TicketEngine extends Thread{
         String validPass = null;
         while(possibleList.size() > i) {
             validPass = Cryptonizer.encrypt(AUTHENTICATION_SECRET_KEY, possibleList.get(i).getAuthenticator(), decodedPass);
-            System.out.println(validPass);
+            ///System.out.println(validPass);
             if(validPass.equals(cryptedPass))
                 break;
             i++;
@@ -182,11 +186,12 @@ public class TicketEngine extends Thread{
             System.out.println("Possible List Empty!");
             return null;
         }
+        /* TODO: Check This on the Future
         if(possibleList.size() > 1) {
             System.out.println("More than one same-user");
             // TODO: take action here.
             return null;
-        }
+        }*/
         
         Ticket ticket = possibleList.get(0);
         
