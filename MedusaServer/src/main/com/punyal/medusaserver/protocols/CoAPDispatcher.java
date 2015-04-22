@@ -35,11 +35,9 @@ public class CoAPDispatcher {
     public static void dispatchRequest(CoapExchange coapReq, Query dbQuery, TicketEngine ticketEngine, EventMessage globalEvent) {
         switch(coapReq.getRequestCode()) {
             case GET: // Request a Authenticator Code
-                System.out.println("Request Authenticator");
                 coapReq.respond(ticketEngine.generateAuthenticator(coapReq.getSourceAddress()));
                 break;
             case PUT: // Request a valid Ticket
-                System.out.println("Request Ticket");
                 String userName = null;
                 String userPass = null;
                 

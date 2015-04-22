@@ -58,7 +58,6 @@ public class RadiusAuthenticationThread extends Thread {
     
     @Override
     public void run() {
-        System.out.println("New RADIUS request");
         radiusClient.authenticate(userName, userPass);
     }
     
