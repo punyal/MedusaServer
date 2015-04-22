@@ -80,7 +80,7 @@ public class TicketEngine extends Thread{
         Collections.sort(ticketList);
         JSONObject json = new JSONObject();
         json.put(JSON_AUTHENTICATOR, ticket.getAuthenticator());
-        json.put(JSON_TIME_TO_EXPIRE, ticket.getExpireTime());
+        json.put(JSON_TIME_TO_EXPIRE, ticket.getExpireTime() - (new Date()).getTime());
         return json.toString();
     }
     
