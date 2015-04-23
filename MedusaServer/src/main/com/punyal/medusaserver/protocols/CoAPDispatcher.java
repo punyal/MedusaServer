@@ -16,6 +16,7 @@
  ******************************************************************************/
 package com.punyal.medusaserver.protocols;
 
+import com.punyal.jrad.core.radius.AttributesMessage;
 import com.punyal.jrad.core.radius.Message;
 import static com.punyal.jrad.core.radius.RADIUS.Type.*;
 import com.punyal.medusaserver.core.db.Query;
@@ -23,6 +24,8 @@ import com.punyal.medusaserver.core.eventHandler.EventConstants;
 import com.punyal.medusaserver.core.eventHandler.EventMessage;
 import static com.punyal.medusaserver.core.medusa.Configuration.*;
 import com.punyal.medusaserver.core.security.TicketEngine;
+import com.punyal.medusaserver.utils.UnitConversion;
+import java.math.BigInteger;
 import java.util.Date;
 import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 import org.eclipse.californium.core.server.resources.CoapExchange;
@@ -84,20 +87,18 @@ public class CoAPDispatcher {
                     
                     String userName = radRequest.getAttributeByType(USER_NAME).getValueString();
                     
-                    radRequest.response.print();
+                    Message radResponse = radRequest.response;
                     
-                    //long timeout = Long.parseLong(radRequest.getAttributeByType(SESSION_TIMEOUT).getValueString());
+                    //Check Timeout
+                    long timeout;
+                    AttributesMessage attSessionTimeout = radResponse.getAttributeByType(SESSION_TIMEOUT);
+                    
+                    if (attSessionTimeout == null)
+                        timeout = (new Date()).getTime() + GENERIC_TICKET_TIMEOUT;
+                    else
+                        timeout = (new Date()).getTime() + Long.parseLong(UnitConversion.ByteArray2Hex(attSessionTimeout.getValue()),16);
                     
                     
-                    //if(timeout > 0 )
-                    //    timeout = (new Date()).getTime() + timeout;
-                    //else
-                    //    timeout = (new Date()).getTime() + (GENERIC_TICKET_TIMEOUT * 1000);
-                    
-                    long timeout = (new Date()).getTime() + GENERIC_TICKET_TIMEOUT;
-                    
-                    //System.out.println("RADIUS Info " + radRequest.getAttributeByType(SESSION_TIMEOUT).getValueString() +
-                    //        " Long " + timeout);
                     
                     String ticketInfo = ticketEngine.createTicket4User(dbQuery, coapReq.getSourceAddress(), userName, timeout);
                     

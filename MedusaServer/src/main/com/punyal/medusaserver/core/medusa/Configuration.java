@@ -27,7 +27,7 @@ public class Configuration {
     // Performance Constants
     public static long AUTHENTICATION_CODE_TIMEOUT = 10000; // 1000*10 = 10000(10s)
     public static long RADIUS_TIMEOUT = 1000; // 1000*1 (1s)
-    public static long GENERIC_TICKET_TIMEOUT = 30000; // 1000*60*10 = 600000 (10m)
+    public static long GENERIC_TICKET_TIMEOUT = 300000; // 1000*60*5 = 300000 (5m)
     
     // Message Format
     public static String JSON_USER_NAME = "userName";
