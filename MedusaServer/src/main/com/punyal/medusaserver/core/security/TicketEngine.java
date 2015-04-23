@@ -50,12 +50,14 @@ public class TicketEngine extends Thread{
             long actualTime = (new Date()).getTime();
             while((!ticketList.isEmpty())  && (ticketList.get(0).getExpireTime() < actualTime)) {
                 Ticket tmp = ticketList.remove(0);
+                /*
                 if(tmp.getTicket() == null)
                     System.err.println("Authenticator EXPIRED ["+ tmp.getAuthenticator()
                             +"] @ "+tmp.getAddress());
                 else
                     System.err.println("Ticket EXPIRED ["+UnitConversion.ByteArray2Hex(tmp.getTicket())
                             +"] for user \""+tmp.getUserName()+"\" @ "+tmp.getAddress());
+                */
             }
             // CLEAN OLD TICKETS & AUTHENTICATORS (END)=========================
             

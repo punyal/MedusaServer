@@ -37,17 +37,15 @@ public class Reporter extends Thread{
         while(running) {
             System.out.println("\n\n-------- Tickets ("+ UnitConversion.Timestamp2String((new Date()).getTime()) +") --------");
             
-            if(ticketList.size()>0) {
-                ticketList.stream().forEach((ticket) -> {
+            ticketList.stream().forEach((ticket) -> {
+                if(ticket.getTicket() != null)
                     System.out.println( "| "+
                             ticket.getUserName() + " @ " +
                             ticket.getAddress() + " valid till " +
-                            ticket.getExpireTime()
+                            UnitConversion.Timestamp2String(ticket.getExpireTime())
                     );
-                });
-            } else {
-                System.out.println("| No valid tickets yet.");
-            }
+            });
+            
             System.out.println("-----------------------------------------------");
             try {
                 sleep(2000); // 2 s

@@ -52,7 +52,12 @@ public class EventHandler extends Thread {
             @Override
             public void fireEvent(EventMedusa evt) {
                 synchronized(this){
-                    messageQueue.add(evt);
+                    try {
+                        messageQueue.add(evt);
+                    }catch(NullPointerException e) {
+                        LOGGER.log(Level.WARNING, "Exception "+e);
+                    }
+                    
                 }
             }
         };
