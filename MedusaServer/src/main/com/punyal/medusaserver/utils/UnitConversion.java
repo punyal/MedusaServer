@@ -16,9 +16,14 @@
  ******************************************************************************/
 package com.punyal.medusaserver.utils;
 
+import static com.punyal.medusaserver.core.medusa.Configuration.CoAP_TICKET_OPTION;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
+import org.eclipse.californium.core.coap.OptionSet;
+import org.eclipse.californium.core.server.resources.CoapExchange;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 /**
  * Class to Convert between different Unit/Object types
@@ -64,5 +69,17 @@ public class UnitConversion {
     
     public static String Timestamp2String(long timestamp) {
         return new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(timestamp);
+    }
+    
+    public static byte[] getTicketFromCoapExchange (CoapExchange exchange) {
+        OptionSet optList = exchange.getRequestOptions();
+        if(optList.hasOption(CoAP_TICKET_OPTION)) {
+            String options = optList.toString();
+            // JSON Simple does not support hex data with the format "0x"
+            options = options.replace("0x", "");
+            JSONObject json = (JSONObject)JSONValue.parse(options);
+            return UnitConversion.hexStringToByteArray(json.get("Unknown ("+CoAP_TICKET_OPTION+")").toString());
+        }
+        return null;
     }
 }

@@ -45,4 +45,7 @@ public class Configuration {
     public static String MySQL_USER = "root";
     public static String MySQL_USER_PASSWORD = "Arrowhead2015&&";
     public static String MySQL_SERVER = "localhost";
+    
+    // CoAP Configuration
+    public static final int CoAP_TICKET_OPTION = 100;
 }

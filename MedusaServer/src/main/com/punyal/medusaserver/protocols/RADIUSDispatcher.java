@@ -16,6 +16,7 @@
  ******************************************************************************/
 package com.punyal.medusaserver.protocols;
 
+import com.punyal.medusaserver.protocols.coap.CoAPDispatcher;
 import com.punyal.jrad.core.radius.Message;
 import com.punyal.medusaserver.core.db.Query;
 import com.punyal.medusaserver.core.security.TicketEngine;

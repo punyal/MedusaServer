@@ -14,7 +14,7 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  ******************************************************************************/
-package com.punyal.medusaserver.protocols;
+package com.punyal.medusaserver.protocols.coap;
 
 import com.punyal.jrad.core.radius.AttributesMessage;
 import com.punyal.jrad.core.radius.Message;
@@ -24,6 +24,7 @@ import com.punyal.medusaserver.core.eventHandler.EventConstants;
 import com.punyal.medusaserver.core.eventHandler.EventMessage;
 import static com.punyal.medusaserver.core.medusa.Configuration.*;
 import com.punyal.medusaserver.core.security.TicketEngine;
+import com.punyal.medusaserver.protocols.RadiusAuthenticationThread;
 import com.punyal.medusaserver.utils.UnitConversion;
 import java.math.BigInteger;
 import java.util.Date;

@@ -19,12 +19,11 @@ package com.punyal.medusaserver.core;
 import com.punyal.medusaserver.core.eventHandler.EventHandler;
 import static com.punyal.medusaserver.core.medusa.MedusaConstants.*;
 import com.punyal.medusaserver.core.medusa.Status;
-import com.punyal.medusaserver.protocols.CoAP;
+import com.punyal.medusaserver.protocols.coap.CoAP;
 import java.net.SocketException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.californium.core.CoapServer;
-import org.eclipse.californium.core.network.config.NetworkConfig;
 
 public class MedusaServer {
     private static final Logger LOGGER = Logger.getLogger(MedusaServer.class.getCanonicalName());
@@ -50,7 +49,7 @@ public class MedusaServer {
         
         // Start Protocols and Report Status
         try {
-            coapServer = new CoAP();
+            coapServer = new CoAP(evtHandler.getTicketEngine());
             // Set logger
             Logger.getLogger(CoapServer.class.getCanonicalName()).setLevel(Level.OFF);
             Logger.getLogger("org.eclipse.californium.core.network.CoAPEndpoint").setLevel(Level.OFF);

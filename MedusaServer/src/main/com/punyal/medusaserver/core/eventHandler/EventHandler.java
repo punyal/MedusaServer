@@ -16,6 +16,8 @@
  ******************************************************************************/
 package com.punyal.medusaserver.core.eventHandler;
 
+import com.punyal.medusaserver.protocols.coap.CoAPDispatcher;
+import com.punyal.medusaserver.protocols.coap.CoAP;
 import com.punyal.medusaserver.core.db.Query;
 import static com.punyal.medusaserver.core.medusa.Configuration.*;
 import com.punyal.medusaserver.core.security.TicketEngine;
@@ -120,6 +122,10 @@ public class EventHandler extends Thread {
      */
     public EventMessage getEventListener() {
         return globalEvent;
+    }
+    
+    public TicketEngine getTicketEngine() {
+        return ticketEngine;
     }
     
     /**

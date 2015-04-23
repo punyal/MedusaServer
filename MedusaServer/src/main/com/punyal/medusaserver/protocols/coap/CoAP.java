@@ -14,15 +14,17 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  ******************************************************************************/
-package com.punyal.medusaserver.protocols;
+package com.punyal.medusaserver.protocols.coap;
 
 import com.punyal.medusaserver.core.eventHandler.EventConstants;
 import static com.punyal.medusaserver.core.eventHandler.EventConstants.Priority.NORMAL;
 import com.punyal.medusaserver.core.eventHandler.EventMedusa;
 import com.punyal.medusaserver.core.eventHandler.EventMessage;
 import com.punyal.medusaserver.core.eventHandler.EventSource;
+import com.punyal.medusaserver.core.security.Ticket;
+import com.punyal.medusaserver.core.security.TicketEngine;
+import com.punyal.medusaserver.utils.UnitConversion;
 import java.net.SocketException;
-import org.eclipse.californium.core.CoapResource;
 import org.eclipse.californium.core.CoapServer;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 
@@ -30,6 +32,8 @@ public class CoAP extends CoapServer {
     public static EventConstants.Priority PRIORITY = NORMAL;
     
     private EventSource mlistener = new EventSource();
+    
+    private TicketEngine ticketEngine;
     
     public void addListener(EventMessage listener) {
         mlistener.addEventListener(listener);
@@ -41,24 +45,25 @@ public class CoAP extends CoapServer {
      * Constructor for a new Hello-World server. Here, the resources
      * of the server are initialized.
      */
-    public CoAP() throws SocketException {
-        
-        // provide an instance of a Hello-World resource
+    public CoAP(TicketEngine ticketEngine) throws SocketException {
+        this.ticketEngine = ticketEngine;
+        // provide an instance of a Authentication resource
         add(new CoAP_Authentication_Resource());
+        add(new CoAP_Validation_Resource());
     }
     
     /*
-     * Definition of the Hello-World Resource
+     * Definition of the Authentication Resource
      */
-    class CoAP_Authentication_Resource extends CoapResource {
+    class CoAP_Authentication_Resource extends MedusaCoapResource {
         
         public CoAP_Authentication_Resource() {
             
             // set resource identifier
-            super("Authentication");
+            super(ticketEngine, "Authentication",true);
             
             // set display name
-            getAttributes().setTitle("AAA Resource");
+            getAttributes().setTitle("Authentication Resource");
         }
         
         @Override
@@ -87,6 +92,35 @@ public class CoAP extends CoapServer {
                     exchange);
             
             mlistener.newEvent(newEvt);
+        }
+    }
+    
+    
+    /*
+     * Definition of the Validation Resource
+     */
+    class CoAP_Validation_Resource extends MedusaCoapResource {
+        
+        public CoAP_Validation_Resource() {
+            
+            // set resource identifier
+            super(ticketEngine, "Validation",true);
+            
+            // set display name
+            getAttributes().setTitle("Validation Resource");
+        }
+                
+        @Override
+        public void medusaHandlePUT(CoapExchange exchange) {
+            try {
+                System.out.println(exchange.getRequestText());
+                Ticket ticket = ticketEngine.getTicket(exchange.getRequestText());
+                if(ticket != null) {
+                    exchange.respond("Valid Ticket");
+                }
+            } catch(NullPointerException e) {
+                exchange.respond("Invalid Ticket");
+            }
         }
     }
 }

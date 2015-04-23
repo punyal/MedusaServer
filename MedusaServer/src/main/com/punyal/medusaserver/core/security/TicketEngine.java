@@ -210,6 +210,21 @@ public class TicketEngine extends Thread{
         return json.toString();
     }
     
+    public synchronized Ticket getTicket(String ticket) {
+        int i=0;
+        while(ticketList.size() > i) {
+            try {
+                if(UnitConversion.ByteArray2Hex(ticketList.get(i).getTicket()).equals(ticket))
+                    return ticketList.get(i);
+            } catch(NullPointerException e) {
+                LOGGER.log(Level.WARNING, "Get Possible Tickets By Address exception {0}", e);
+                return null;
+            }
+            i++;
+        }
+        return null;
+    }
+    
     public synchronized ArrayList<Ticket> getTicketList() {
         return ticketList;
     }

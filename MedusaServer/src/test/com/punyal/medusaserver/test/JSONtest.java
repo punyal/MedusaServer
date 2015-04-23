@@ -37,6 +37,8 @@ public class JSONtest {
         
         String test = "{\"Uri-Path\":\"helloWorld\", \"Block2\":2, \"Unknown (100)\":0x54}";
         System.out.println(test);
+        test = test.replace("0x", "");
+        System.out.println(test);
         JSONObject json3 = (JSONObject)JSONValue.parse(test);
         
         System.out.println(json3.get("Unknown (100)"));
