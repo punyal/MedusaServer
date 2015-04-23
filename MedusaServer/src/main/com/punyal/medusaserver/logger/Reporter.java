@@ -40,7 +40,8 @@ public class Reporter extends Thread{
             ticketList.stream().forEach((ticket) -> {
                 if(ticket.getTicket() != null)
                     System.out.println( "| "+
-                            ticket.getUserName() + " @ " +
+                            ticket.getUserName() + " [" +
+                            UnitConversion.ByteArray2Hex(ticket.getTicket()) +"] @ " +
                             ticket.getAddress() + " valid till " +
                             UnitConversion.Timestamp2String(ticket.getExpireTime())
                     );

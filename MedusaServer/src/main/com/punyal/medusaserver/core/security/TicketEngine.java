@@ -183,19 +183,19 @@ public class TicketEngine extends Thread{
     }
     
     public synchronized String createTicket4User(Query dbQuery, InetAddress address, String userName, long expireTime) {
+        Ticket ticket;
         ArrayList<Ticket> possibleList = getPossibleTicketsByAddress(address, userName);
         if(possibleList.isEmpty()) {
             System.out.println("Possible List Empty!");
             return null;
         }
-        /* TODO: Check This on the Future
+        // TODO: Check This on the Future
         if(possibleList.size() > 1) {
             System.out.println("More than one same-user");
-            // TODO: take action here.
-            return null;
-        }*/
-        
-        Ticket ticket = possibleList.get(0);
+            ticket = possibleList.get(possibleList.size()-1);
+        } else {
+            ticket = possibleList.get(0);
+        }
         
         if(ticket.getTicket() == null) {
             ticket.setUserName(userName);
