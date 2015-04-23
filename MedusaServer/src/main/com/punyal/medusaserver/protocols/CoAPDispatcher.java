@@ -83,6 +83,9 @@ public class CoAPDispatcher {
                     // TODO: Create the ticket and extra information with the RADIUS response
                     
                     String userName = radRequest.getAttributeByType(USER_NAME).getValueString();
+                    
+                    radRequest.response.print();
+                    
                     //long timeout = Long.parseLong(radRequest.getAttributeByType(SESSION_TIMEOUT).getValueString());
                     
                     

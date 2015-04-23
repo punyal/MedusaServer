@@ -29,12 +29,20 @@ public class JSONtest {
         json.put("authenticator", "fjkasdfhjsdjhfdsf");
         System.out.println(json.toString());
         
-       
-        JSONObject json2 = (JSONObject)JSONValue.parse(json.toString());
-        System.out.println(json2.get("name"));
+        String test1 = "{\"Uri-Path\":\"foo\",\"authenticator\":\"fjkasdfhjsdjhfdsf\"}";
+        JSONObject json2 = (JSONObject)JSONValue.parse(test1);
+        System.out.println(json2.get("Uri-Path"));
         System.out.println(json2.get("authenticator"));
         
+        
+        String test = "{\"Uri-Path\":\"helloWorld\", \"Block2\":2, \"Unknown (100)\":0x54}";
+        System.out.println(test);
+        JSONObject json3 = (JSONObject)JSONValue.parse(test);
+        
+        System.out.println(json3.get("Unknown (100)"));
+        
         System.out.println("# Test (STOP)");
+        
     }
 
 }
