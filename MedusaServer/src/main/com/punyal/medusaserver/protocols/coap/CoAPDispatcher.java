@@ -57,8 +57,6 @@ public class CoAPDispatcher {
                 }else{
                     userPass = ticketEngine.checkUserPass(dbQuery, coapReq.getSourceAddress(), userName, userPass);
                     
-                    //ticketEngine.printList(ticketEngine.getTicketList()); // TODO: delete xD
-                    
                     if(userPass == null) {
                         coapReq.respond(ResponseCode.UNAUTHORIZED, "Bad Encryption"); // Change this message to a generic to increase the security
                     } else {

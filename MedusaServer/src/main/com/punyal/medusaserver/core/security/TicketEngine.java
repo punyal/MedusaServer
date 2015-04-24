@@ -40,6 +40,7 @@ public class TicketEngine extends Thread{
         ticketList = new ArrayList<>();
     }
     
+    @Override
     public void run() {
         running = true;
         LOGGER.log(Level.INFO, "Thread [{0}] running", TicketEngine.class.getSimpleName());
@@ -216,6 +217,7 @@ public class TicketEngine extends Thread{
             try {
                 if(UnitConversion.ByteArray2Hex(ticketList.get(i).getTicket()).equals(ticket))
                     return ticketList.get(i);
+                    
             } catch(NullPointerException e) {
                 LOGGER.log(Level.WARNING, "Get Possible Tickets By Address exception {0}", e);
                 return null;
