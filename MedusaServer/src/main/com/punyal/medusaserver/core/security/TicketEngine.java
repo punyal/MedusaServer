@@ -156,7 +156,7 @@ public class TicketEngine extends Thread{
         int i=0;
         String validPass = null;
         while(possibleList.size() > i) {
-            validPass = Cryptonizer.encrypt(AUTHENTICATION_SECRET_KEY, possibleList.get(i).getAuthenticator(), decodedPass);
+            validPass = Cryptonizer.encryptCoAP(AUTHENTICATION_SECRET_KEY, possibleList.get(i).getAuthenticator(), decodedPass);
             ///System.out.println(validPass);
             if(validPass.equals(cryptedPass))
                 break;

@@ -43,6 +43,15 @@ public class JSONtest {
         
         System.out.println(json3.get("Unknown (100)"));
         
+        
+        
+        String real = "{\"Uri-Path\":\"helloWorld\", \"Unknown (100)\":0xc5f379b7b0a037a8}";
+        System.out.println(real);
+        real = real.replace("0x", "");
+        System.out.println(real);
+        JSONObject json4 = (JSONObject)JSONValue.parse(real);
+        
+        System.out.println(json4.get("Unknown (100)"));
         System.out.println("# Test (STOP)");
         
     }

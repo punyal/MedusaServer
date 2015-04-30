@@ -70,4 +70,52 @@ public class Cryptonizer {
         }
         return null;
     }
+    
+    public static String encryptCoAP(String secretKey, String authenticator, String passWord) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] b_secretKey = UnitConversion.stringToByteArray(secretKey);
+            byte[] b_authenticator = UnitConversion.hexStringToByteArray(authenticator);
+            byte[] b_password = UnitConversion.stringToByteArray(passWord);
+            
+            if(b_authenticator.length != 16)
+            throw new IllegalArgumentException("Authenticator with wrong length: "+b_authenticator.length);
+            
+            int len = 0;
+            int tot_len = 0;
+            // Check final length to prevent errors
+            if(b_password.length%16 != 0) tot_len = 16;
+            tot_len += ((int)b_password.length/16)*16;
+            
+            // Create crypted array
+            byte[] crypted = new byte[tot_len];
+            
+            byte[] b_temp = new byte[b_secretKey.length+b_authenticator.length];
+            byte[] c_temp = new byte[16];
+            System.arraycopy(b_secretKey, 0, b_temp, 0, b_secretKey.length);
+            System.arraycopy(b_authenticator, 0, b_temp, b_secretKey.length, b_authenticator.length);
+            b_temp = md.digest(UnitConversion.stringToByteArray(UnitConversion.ByteArray2Hex(b_temp)));
+
+            while(len < tot_len) {
+                // Copy the 16th bytes to XOR
+                if((b_password.length - len) < 16) {
+                    System.arraycopy(b_password, len, c_temp, 0, b_password.length-len);
+                    for(int i=b_password.length-len; i<16; i ++) 
+                        c_temp[i] = 0;
+                } else System.arraycopy(b_password, len, c_temp, 0, 16);
+
+                for(int i=0; i<16; i++)
+                    c_temp[i] = (byte)(0xFF & ((int)c_temp[i]) ^((int)b_temp[i]));
+
+                System.arraycopy(c_temp, 0, crypted, len, 16);
+                len += 16;
+            }
+            return UnitConversion.ByteArray2Hex(crypted);
+            
+        } catch(NoSuchAlgorithmException ex) {
+            System.err.println("No Such Arlgorithm Exception "+ ex);
+        }
+        return null;
+        
+    }
 }
