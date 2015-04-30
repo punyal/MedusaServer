@@ -21,12 +21,16 @@ import static com.punyal.medusaserver.core.eventHandler.EventConstants.Priority.
 import com.punyal.medusaserver.core.eventHandler.EventMedusa;
 import com.punyal.medusaserver.core.eventHandler.EventMessage;
 import com.punyal.medusaserver.core.eventHandler.EventSource;
+import com.punyal.medusaserver.core.medusa.Configuration;
+import static com.punyal.medusaserver.core.medusa.Configuration.*;
 import com.punyal.medusaserver.core.security.Ticket;
 import com.punyal.medusaserver.core.security.TicketEngine;
 import com.punyal.medusaserver.utils.UnitConversion;
 import java.net.SocketException;
+import java.util.Date;
 import org.eclipse.californium.core.CoapServer;
 import org.eclipse.californium.core.server.resources.CoapExchange;
+import org.json.simple.JSONObject;
 
 public class CoAP extends CoapServer {
     public static EventConstants.Priority PRIORITY = NORMAL;
@@ -112,15 +116,20 @@ public class CoAP extends CoapServer {
                 
         @Override
         public void medusaHandlePUT(CoapExchange exchange) {
-            try {
-                System.out.println(exchange.getRequestText());
+            
                 Ticket ticket = ticketEngine.getTicket(exchange.getRequestText());
+                
+                // TODO: Add more parameters to check
                 if(ticket != null) {
-                    exchange.respond("Valid Ticket");
+                    JSONObject json = new JSONObject();
+                    json.put(JSON_TIME_TO_EXPIRE, ticket.getExpireTime()- (new Date()).getTime());
+                    json.put(JSON_USER_NAME, ticket.getUserName());
+                    exchange.respond(json.toString());
+                } else {
+                    exchange.respond("Invalid Ticket");
                 }
-            } catch(NullPointerException e) {
-                exchange.respond("Invalid Ticket");
-            }
+                
+            
         }
     }
 }

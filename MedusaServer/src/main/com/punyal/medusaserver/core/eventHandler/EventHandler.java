@@ -47,9 +47,11 @@ public class EventHandler extends Thread {
     
     /**
      * Constructor to set the dispatcher
+     * @param ticketEngine
      */
-    public EventHandler() {
+    public EventHandler(TicketEngine ticketEngine) {
         running = false;
+        this.ticketEngine = ticketEngine;
         this.globalEvent = new EventMessage() {
             @Override
             public void fireEvent(EventMedusa evt) {
@@ -74,11 +76,10 @@ public class EventHandler extends Thread {
         /**
          * Initialization of all subsystems
          */
-        ticketEngine = new TicketEngine();
         ticketEngine.start();
         dbQuery = new Query(MySQL_USER, MySQL_USER_PASSWORD, MySQL_SERVER);
         reporter = new Reporter(ticketEngine.getTicketList());
-        reporter.start();
+        //reporter.start();
         messageQueue = new ArrayList<>();
         
         while(running) {
@@ -124,9 +125,6 @@ public class EventHandler extends Thread {
         return globalEvent;
     }
     
-    public TicketEngine getTicketEngine() {
-        return ticketEngine;
-    }
     
     /**
      * Set Protocol Adaptor
