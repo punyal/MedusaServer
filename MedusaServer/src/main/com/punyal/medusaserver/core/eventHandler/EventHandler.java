@@ -79,7 +79,7 @@ public class EventHandler extends Thread {
         ticketEngine.start();
         dbQuery = new Query(MySQL_USER, MySQL_USER_PASSWORD, MySQL_SERVER);
         reporter = new Reporter(ticketEngine.getTicketList());
-        reporter.start();
+        //reporter.start();
         messageQueue = new ArrayList<>();
         
         while(running) {
