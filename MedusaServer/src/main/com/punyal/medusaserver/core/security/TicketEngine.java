@@ -16,14 +16,13 @@
  ******************************************************************************/
 package com.punyal.medusaserver.core.security;
 
-import com.punyal.medusaserver.core.db.Query;
+import com.punyal.medusaserver.core.db.AuthenticationDB;
 import static com.punyal.medusaserver.core.medusa.Configuration.*;
 import com.punyal.medusaserver.utils.UnitConversion;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.ListIterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.simple.JSONObject;
@@ -141,14 +140,14 @@ public class TicketEngine extends Thread{
         return possibleTickets;
     }
     
-    public synchronized String checkUserPass(Query dbQuery, InetAddress address, String userName, String cryptedPass) {
+    public synchronized String checkUserPass(AuthenticationDB authDB, InetAddress address, String userName, String cryptedPass) {
         ArrayList<Ticket> possibleList = getPossibleAuthenticationTicketsByAddress(address);
         if(possibleList.isEmpty()) {
             System.out.println("Possible List Empty!");
             return null;
         }
         
-        String decodedPass = dbQuery.getPass4User(userName);
+        String decodedPass = authDB.getPass4User(userName);
         if(decodedPass == null) {
             System.out.println("No DB data for user " + userName);
             return null;
@@ -183,7 +182,7 @@ public class TicketEngine extends Thread{
         return null;
     }
     
-    public synchronized String createTicket4User(Query dbQuery, InetAddress address, String userName, long expireTime) {
+    public synchronized String createTicket4User(AuthenticationDB authDB, InetAddress address, String userName, long expireTime, String userType) {
         Ticket ticket;
         ArrayList<Ticket> possibleList = getPossibleTicketsByAddress(address, userName);
         if(possibleList.isEmpty()) {
@@ -200,6 +199,7 @@ public class TicketEngine extends Thread{
         
         if(ticket.getTicket() == null) {
             ticket.setUserName(userName);
+            ticket.setUserType(userType);
             ticket.setTicket(randomizer.generate8bytes());
             ticket.setExpireTime(expireTime);
             Collections.sort(ticketList);

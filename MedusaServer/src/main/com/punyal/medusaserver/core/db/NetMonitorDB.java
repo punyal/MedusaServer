@@ -16,27 +16,21 @@
  ******************************************************************************/
 package com.punyal.medusaserver.core.db;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import com.punyal.medusaserver.core.medusa.Status;
 
-public class Query {
+public final class NetMonitorDB {
     DBsql mySQL;
     
-    public Query(String user, String password, String server) {
-        mySQL = new DBsql(user, password, server);
+    public NetMonitorDB(Status status, String server, String dbname, String user, String password) {
+        mySQL = new DBsql(status, this.getClass().getSimpleName(), server, dbname, user, password);
+        this.resetDB();
     }
     
-    public String getPass4User(String userName) {
-        ResultSet result = mySQL.Query("SELECT value FROM radcheck WHERE username=\"" + userName + "\" && attribute=\"Cleartext-Password\"");
-        if(result != null) {
-            try {
-                if(result.next())
-                    return result.getString(1);
-            } catch (SQLException ex) {
-            }
-        }
-        // System.err.println("NO correct SQL pass response");
-        return null;
-            
+    public void resetDB() {
+        mySQL.Update("truncate table links");
+        mySQL.Update("truncate table nodes");
+        mySQL.Update("truncate table updates");
+        mySQL.Update("INSERT INTO `arrowhead_network`.`updates` (`command`, `updatetime`) VALUES ('refresh', NOW()+2);");
     }
+    
 }

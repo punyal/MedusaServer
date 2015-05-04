@@ -41,10 +41,17 @@ public class Configuration {
     public static int RADIUS_SERVER_PORT = DEFAULT_RADIUS_PORT;
     public static String RADIUS_SECRET_KEY = "testing123";
     
-    // MySQL Configuration
-    public static String MySQL_USER = "root";
-    public static String MySQL_USER_PASSWORD = "Arrowhead2015&&";
-    public static String MySQL_SERVER = "localhost";
+    // MySQL Authentication Configuration
+    public static String MySQL_AUTHENTICATION_USER = "root";
+    public static String MySQL_AUTHENTICATION_USER_PASSWORD = "";
+    public static String MySQL_AUTHENTICATION_SERVER = "localhost";
+    public static String MySQL_AUTHENTICATION_DBNAME = "rd";
+    
+    // MySQL NETMONITOR Configuration
+    public static String MySQL_NETMONITOR_USER = "arrowhead";
+    public static String MySQL_NETMONITOR_USER_PASSWORD = "";
+    public static String MySQL_NETMONITOR_SERVER = "";
+    public static String MySQL_NETMONITOR_DBNAME = "arrowhead_network";
     
     // CoAP Configuration
     public static final int CoAP_TICKET_OPTION = 100;

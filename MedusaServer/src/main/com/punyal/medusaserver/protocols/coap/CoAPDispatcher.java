@@ -19,14 +19,13 @@ package com.punyal.medusaserver.protocols.coap;
 import com.punyal.jrad.core.radius.AttributesMessage;
 import com.punyal.jrad.core.radius.Message;
 import static com.punyal.jrad.core.radius.RADIUS.Type.*;
-import com.punyal.medusaserver.core.db.Query;
+import com.punyal.medusaserver.core.db.AuthenticationDB;
 import com.punyal.medusaserver.core.eventHandler.EventConstants;
 import com.punyal.medusaserver.core.eventHandler.EventMessage;
 import static com.punyal.medusaserver.core.medusa.Configuration.*;
 import com.punyal.medusaserver.core.security.TicketEngine;
 import com.punyal.medusaserver.protocols.RadiusAuthenticationThread;
 import com.punyal.medusaserver.utils.UnitConversion;
-import java.math.BigInteger;
 import java.util.Date;
 import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 import org.eclipse.californium.core.server.resources.CoapExchange;
@@ -36,7 +35,7 @@ import org.json.simple.JSONValue;
 public class CoAPDispatcher {
     private CoAPDispatcher() {}
     
-    public static void dispatchRequest(CoapExchange coapReq, Query dbQuery, TicketEngine ticketEngine, EventMessage globalEvent) {
+    public static void dispatchRequest(CoapExchange coapReq, AuthenticationDB authDB, TicketEngine ticketEngine, EventMessage globalEvent) {
         switch(coapReq.getRequestCode()) {
             case GET: // Request a Authenticator Code
                 coapReq.respond(ticketEngine.generateAuthenticator(coapReq.getSourceAddress()));
@@ -55,7 +54,7 @@ public class CoAPDispatcher {
                 if(userName == null || userPass == null) {
                     coapReq.respond(ResponseCode.NOT_ACCEPTABLE, "Wrong user-password format");
                 }else{
-                    userPass = ticketEngine.checkUserPass(dbQuery, coapReq.getSourceAddress(), userName, userPass);
+                    userPass = ticketEngine.checkUserPass(authDB, coapReq.getSourceAddress(), userName, userPass);
                     
                     if(userPass == null) {
                         coapReq.respond(ResponseCode.UNAUTHORIZED, "Bad Encryption"); // Change this message to a generic to increase the security
@@ -76,7 +75,7 @@ public class CoAPDispatcher {
         }
     }
     
-    public static void dispatchResponse(Message radRequest, CoapExchange coapReq, TicketEngine ticketEngine, Query dbQuery) {
+    public static void dispatchResponse(Message radRequest, CoapExchange coapReq, TicketEngine ticketEngine, AuthenticationDB authDB) {
         if((Message)radRequest.response == null)
             coapReq.respond(ResponseCode.INTERNAL_SERVER_ERROR, "Timeout");
         else {            
@@ -97,9 +96,15 @@ public class CoAPDispatcher {
                     else
                         timeout = (new Date()).getTime() + Long.parseLong(UnitConversion.ByteArray2Hex(attSessionTimeout.getValue()),16);
                     
+                    AttributesMessage attFilterID = radResponse.getAttributeByType(FILTER_ID);
                     
+                    String userType = null;
+                    if (attFilterID == null || attFilterID.getValueString() == null)
+                        userType = "GENERIC";
+                    else
+                        userType = attFilterID.getValueString();
                     
-                    String ticketInfo = ticketEngine.createTicket4User(dbQuery, coapReq.getSourceAddress(), userName, timeout);
+                    String ticketInfo = ticketEngine.createTicket4User(authDB, coapReq.getSourceAddress(), userName, timeout, userType);
                     
                     if(ticketInfo == null) {
                         coapReq.respond(ResponseCode.INTERNAL_SERVER_ERROR, "Ticket Generation Error");

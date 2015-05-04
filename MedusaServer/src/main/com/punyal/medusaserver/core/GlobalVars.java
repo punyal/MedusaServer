@@ -14,13 +14,33 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  ******************************************************************************/
-package com.punyal.medusaserver.core.medusa;
+package com.punyal.medusaserver.core;
 
-/**
- * Constants List
- */
-public class MedusaConstants {
-    public static final int version = 0;
-    public static final int subVersion = 2;
+import com.punyal.medusaserver.core.eventHandler.EventHandler;
+import com.punyal.medusaserver.core.medusa.Status;
+import com.punyal.medusaserver.core.security.TicketEngine;
+
+public class GlobalVars {
+    private final TicketEngine ticketEngine;
+    private final EventHandler evtHandler;
+    private final Status status;
     
+    public GlobalVars() {
+        status = new Status(); // Create and set the server status
+        ticketEngine = new TicketEngine(); // Create a ticketEngine
+        evtHandler = new EventHandler(status, ticketEngine); // Create and Start the Event Handler
+        evtHandler.start();
+    }
+    
+    public TicketEngine getTicketEngine() {
+        return ticketEngine;
+    }
+    
+    public EventHandler getHandler() {
+        return evtHandler;
+    }
+    
+    public Status getStatus() {
+        return status;
+    }
 }

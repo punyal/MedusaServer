@@ -18,8 +18,10 @@ package com.punyal.medusaserver.core.eventHandler;
 
 import com.punyal.medusaserver.protocols.coap.CoAPDispatcher;
 import com.punyal.medusaserver.protocols.coap.CoAP;
-import com.punyal.medusaserver.core.db.Query;
+import com.punyal.medusaserver.core.db.AuthenticationDB;
+import com.punyal.medusaserver.core.db.NetMonitorDB;
 import static com.punyal.medusaserver.core.medusa.Configuration.*;
+import com.punyal.medusaserver.core.medusa.Status;
 import com.punyal.medusaserver.core.security.TicketEngine;
 import com.punyal.medusaserver.logger.Reporter;
 import com.punyal.medusaserver.protocols.*;
@@ -34,8 +36,10 @@ public class EventHandler extends Thread {
     private static final Logger LOGGER = Logger.getLogger(EventHandler.class.getCanonicalName());
     private boolean running;
     private final EventMessage globalEvent;
-    private TicketEngine ticketEngine;
-    private Query dbQuery;
+    private final TicketEngine ticketEngine;
+    private Status status;
+    private AuthenticationDB authDB;
+    private NetMonitorDB netDB;
     private Reporter reporter;
     
     private List<EventMedusa> messageQueue;
@@ -49,8 +53,9 @@ public class EventHandler extends Thread {
      * Constructor to set the dispatcher
      * @param ticketEngine
      */
-    public EventHandler(TicketEngine ticketEngine) {
+    public EventHandler(Status status,TicketEngine ticketEngine) {
         running = false;
+        this.status = status;
         this.ticketEngine = ticketEngine;
         this.globalEvent = new EventMessage() {
             @Override
@@ -77,7 +82,8 @@ public class EventHandler extends Thread {
          * Initialization of all subsystems
          */
         ticketEngine.start();
-        dbQuery = new Query(MySQL_USER, MySQL_USER_PASSWORD, MySQL_SERVER);
+        authDB = new AuthenticationDB(status, MySQL_AUTHENTICATION_SERVER, MySQL_AUTHENTICATION_DBNAME, MySQL_AUTHENTICATION_USER, MySQL_AUTHENTICATION_USER_PASSWORD);
+        netDB = new NetMonitorDB(status, MySQL_NETMONITOR_SERVER, MySQL_NETMONITOR_DBNAME, MySQL_NETMONITOR_USER, MySQL_NETMONITOR_USER_PASSWORD);
         reporter = new Reporter(ticketEngine.getTicketList());
         //reporter.start();
         messageQueue = new ArrayList<>();
@@ -88,10 +94,10 @@ public class EventHandler extends Thread {
                 EventMedusa evt = messageQueue.remove(0);
                 switch(evt.getProtocol()) {
                     case RADIUS:
-                        RADIUSDispatcher.dispatchResponse((Packetizer)evt.getSource(), ticketEngine, dbQuery);
+                        RADIUSDispatcher.dispatchResponse((Packetizer)evt.getSource(), ticketEngine, authDB);
                         break;
                     case CoAP:
-                        CoAPDispatcher.dispatchRequest((CoapExchange)evt.getSource(),  dbQuery, ticketEngine, globalEvent);
+                        CoAPDispatcher.dispatchRequest((CoapExchange)evt.getSource(),  authDB, ticketEngine, globalEvent);
                         break;
                     case REST:
                         System.out.println("REST");

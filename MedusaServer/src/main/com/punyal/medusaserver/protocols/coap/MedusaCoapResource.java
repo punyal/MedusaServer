@@ -16,6 +16,7 @@
  ******************************************************************************/
 package com.punyal.medusaserver.protocols.coap;
 
+import com.punyal.medusaserver.core.GlobalVars;
 import com.punyal.medusaserver.core.security.TicketEngine;
 import com.punyal.medusaserver.utils.UnitConversion;
 import org.eclipse.californium.core.CoapResource;
@@ -24,18 +25,18 @@ import org.eclipse.californium.core.server.resources.CoapExchange;
 
 public class MedusaCoapResource extends CoapResource{
     private final boolean publicResource;
-    private TicketEngine ticketEngine;
+    private GlobalVars globalVars;
     
-    public MedusaCoapResource(TicketEngine ticketEngine, String name, boolean publicResource) {
+    public MedusaCoapResource(GlobalVars globalVars, String name, boolean publicResource) {
         super(name);
         this.publicResource = publicResource;
-        this.ticketEngine = ticketEngine;
+        this.globalVars = globalVars;
     }
     
-    public MedusaCoapResource(TicketEngine ticketEngine, String name, boolean visible, boolean publicResource) {
+    public MedusaCoapResource(GlobalVars globalVars, String name, boolean visible, boolean publicResource) {
         super(name, visible);
         this.publicResource = publicResource;
-        this.ticketEngine = ticketEngine;
+        this.globalVars = globalVars;
     }
     
     @Override
@@ -48,7 +49,7 @@ public class MedusaCoapResource extends CoapResource{
         
         // NOT PUBLIC RESOURCE
         try {
-            if(ticketEngine.getTicket(UnitConversion.ByteArray2Hex(UnitConversion.getTicketFromCoapExchange(exchange))) != null) {
+            if(globalVars.getTicketEngine().getTicket(UnitConversion.ByteArray2Hex(UnitConversion.getTicketFromCoapExchange(exchange))) != null) {
                 medusaHandleGET(exchange);
                 return;
             }
@@ -66,7 +67,7 @@ public class MedusaCoapResource extends CoapResource{
         }
         // NOT PUBLIC RESOURCE
         try {
-            if(ticketEngine.getTicket(UnitConversion.ByteArray2Hex(UnitConversion.getTicketFromCoapExchange(exchange))) != null) {
+            if(globalVars.getTicketEngine().getTicket(UnitConversion.ByteArray2Hex(UnitConversion.getTicketFromCoapExchange(exchange))) != null) {
                 medusaHandlePOST(exchange);
                 return;
             }
@@ -84,7 +85,7 @@ public class MedusaCoapResource extends CoapResource{
         }
         // NOT PUBLIC RESOURCE
         try {
-            if(ticketEngine.getTicket(UnitConversion.ByteArray2Hex(UnitConversion.getTicketFromCoapExchange(exchange))) != null) {
+            if(globalVars.getTicketEngine().getTicket(UnitConversion.ByteArray2Hex(UnitConversion.getTicketFromCoapExchange(exchange))) != null) {
                 medusaHandlePUT(exchange);
                 return;
             }
@@ -102,7 +103,7 @@ public class MedusaCoapResource extends CoapResource{
         }
         // NOT PUBLIC RESOURCE
         try {
-            if(ticketEngine.getTicket(UnitConversion.ByteArray2Hex(UnitConversion.getTicketFromCoapExchange(exchange))) != null) {
+            if(globalVars.getTicketEngine().getTicket(UnitConversion.ByteArray2Hex(UnitConversion.getTicketFromCoapExchange(exchange))) != null) {
                 medusaHandleDELETE(exchange);
                 return;
             }

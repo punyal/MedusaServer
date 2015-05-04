@@ -16,23 +16,19 @@
  ******************************************************************************/
 package com.punyal.medusaserver.core;
 
-import com.punyal.medusaserver.core.eventHandler.EventHandler;
 import static com.punyal.medusaserver.core.medusa.MedusaConstants.*;
-import com.punyal.medusaserver.core.medusa.Status;
-import com.punyal.medusaserver.core.security.TicketEngine;
 import com.punyal.medusaserver.protocols.coap.CoAP;
+import com.punyal.medusaserver.protocols.rest.REST;
+import static java.lang.Thread.sleep;
 import java.net.SocketException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.eclipse.californium.core.CoapServer;
 
 public class MedusaServer {
     private static final Logger LOGGER = Logger.getLogger(MedusaServer.class.getCanonicalName());
-    private TicketEngine ticketEngine;
-    private EventHandler evtHandler; // Independent thread for event management
-    private Status status;     // Status of the Server
-    //private RADIUS radiusClient; // RADIUS Client
+    private GlobalVars globalVars;
     private CoAP coapServer;     // CoAP Server
+    private REST restServer;
     
     /**
      * Constructor
@@ -42,36 +38,29 @@ public class MedusaServer {
         
         LOGGER.log(Level.INFO, String.format("Medusa Server %d.%d", version, subVersion));
         
-        // Create and set the server status
-        status = new Status();
-        
-        // Create a ticketEngine
-        ticketEngine = new TicketEngine();
-        
-        // Create and Start the Event Handler
-        evtHandler = new EventHandler(ticketEngine);
-        evtHandler.start();
+        globalVars = new GlobalVars();
         
         // Start Protocols and Report Status
         try {
-            coapServer = new CoAP(ticketEngine);
-            // Set logger
-            Logger.getLogger(CoapServer.class.getCanonicalName()).setLevel(Level.OFF);
-            Logger.getLogger("org.eclipse.californium.core.network.CoAPEndpoint").setLevel(Level.OFF);
+            coapServer = new CoAP(globalVars);
             
-            coapServer.addListener(evtHandler.getEventListener());
-            evtHandler.setProtocolAdaptor(coapServer);
-            coapServer.start();
-            
-        } catch (SocketException e) {
-            
+        } catch (SocketException | IllegalStateException e) {
             System.err.println("Failed to initialize server: " + e.getMessage());
+            globalVars.getStatus().setProtocolStatus("CoAP", false);
         }
         
-        // Now the system is ready
-        // Evaluate Server Status and Make a decision.
-        // sleep and evaluate some secs later.
-        // ShutDown();
+        restServer = new REST(globalVars);
+        
+        
+        try {
+            sleep(2000);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(MedusaServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        System.out.print(globalVars.getStatus().toString());
+        
+        
     }
     private void ShutDown() {
         System.out.println("Shutting down Medusa Server"); // Print Reason of ShuttingDown

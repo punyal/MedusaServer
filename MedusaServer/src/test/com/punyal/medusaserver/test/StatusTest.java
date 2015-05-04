@@ -14,13 +14,24 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  ******************************************************************************/
-package com.punyal.medusaserver.core.medusa;
+package com.punyal.medusaserver.test;
 
-/**
- * Constants List
- */
-public class MedusaConstants {
-    public static final int version = 0;
-    public static final int subVersion = 2;
-    
+import com.punyal.medusaserver.core.medusa.Status;
+
+
+public class StatusTest {
+    public static void main(String[] args) {
+        System.out.println("# Test (START)");
+        Status status = new Status();
+        
+        status.addNewProtocolStatus("CoAP");
+        status.addNewProtocolStatus("CoAP");
+        
+        System.out.println(status.toString());
+        
+        System.out.println("# Test (STOP)");
+        
+    }
+
 }
+    

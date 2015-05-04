@@ -16,6 +16,7 @@
  ******************************************************************************/
 package com.punyal.medusaserver.core.db;
 
+import com.punyal.medusaserver.core.medusa.Status;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -28,11 +29,13 @@ public class DBsql {
     private static final Logger LOGGER = Logger.getLogger(DBsql.class.getCanonicalName());
     private Connection connection;
     
-    public DBsql(String user, String password, String server) {
+    public DBsql(Status status, String mainName, String server, String dbname, String user, String password) {
         try {
-            connection = DriverManager.getConnection("jdbc:mysql://"+server+"/rd", user, password);
+            status.addNewDBStatus(mainName);
+            connection = DriverManager.getConnection("jdbc:mysql://"+server+"/"+dbname, user, password);
         } catch (SQLException ex) {
-             LOGGER.log(Level.WARNING, "Unable to connect to database");
+            status.setDBStatus(mainName, false);
+            LOGGER.log(Level.WARNING, "Unable to connect to database");
         }
     }
     
@@ -47,7 +50,7 @@ public class DBsql {
                     try {
                         resultSet = statement.executeQuery(query);
                     } catch(SQLException e) {
-                        LOGGER.log(Level.WARNING, "Unable to create the Query");
+                        LOGGER.log(Level.WARNING, "Unable to create the Query " + e);
                     }
                 } else {
                     System.err.println("Null statement");
@@ -58,5 +61,29 @@ public class DBsql {
             }
         }
         return resultSet;
+    }
+    
+    public int Update(String query) {
+        Statement statement;
+        int result = 0;
+        if(connection != null) {
+            try {
+                statement = connection.createStatement();
+                
+                if(statement != null) {
+                    try {
+                        result = statement.executeUpdate(query);
+                    } catch(SQLException e) {
+                        LOGGER.log(Level.WARNING, "Unable to create the Query " + e);
+                    }
+                } else {
+                    System.err.println("Null statement");
+                }
+                
+            } catch (SQLException e) {
+                System.err.println("Unable to create statement");
+            }
+        }
+        return result;
     }
 }

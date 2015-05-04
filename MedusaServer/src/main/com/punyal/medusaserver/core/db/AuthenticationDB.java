@@ -14,13 +14,30 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  ******************************************************************************/
-package com.punyal.medusaserver.core.medusa;
+package com.punyal.medusaserver.core.db;
 
-/**
- * Constants List
- */
-public class MedusaConstants {
-    public static final int version = 0;
-    public static final int subVersion = 2;
+import com.punyal.medusaserver.core.medusa.Status;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class AuthenticationDB {
+    DBsql mySQL;
     
+    public AuthenticationDB(Status status, String server, String dbname, String user, String password) {
+        mySQL = new DBsql(status, this.getClass().getSimpleName(), server, dbname, user, password);
+    }
+    
+    public String getPass4User(String userName) {
+        ResultSet result = mySQL.Query("SELECT value FROM radcheck WHERE username=\"" + userName + "\" && attribute=\"Cleartext-Password\"");
+        if(result != null) {
+            try {
+                if(result.next())
+                    return result.getString(1);
+            } catch (SQLException ex) {
+            }
+        }
+        // System.err.println("NO correct SQL pass response");
+        return null;
+            
+    }
 }

@@ -16,6 +16,7 @@
  ******************************************************************************/
 package com.punyal.medusaserver.protocols.coap;
 
+import com.punyal.medusaserver.core.GlobalVars;
 import com.punyal.medusaserver.core.eventHandler.EventConstants;
 import static com.punyal.medusaserver.core.eventHandler.EventConstants.Priority.NORMAL;
 import com.punyal.medusaserver.core.eventHandler.EventMedusa;
@@ -28,6 +29,8 @@ import com.punyal.medusaserver.core.security.TicketEngine;
 import com.punyal.medusaserver.utils.UnitConversion;
 import java.net.SocketException;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.eclipse.californium.core.CoapServer;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.json.simple.JSONObject;
@@ -37,7 +40,7 @@ public class CoAP extends CoapServer {
     
     private EventSource mlistener = new EventSource();
     
-    private TicketEngine ticketEngine;
+    private GlobalVars globalVars;
     
     public void addListener(EventMessage listener) {
         mlistener.addEventListener(listener);
@@ -49,11 +52,17 @@ public class CoAP extends CoapServer {
      * Constructor for a new Hello-World server. Here, the resources
      * of the server are initialized.
      */
-    public CoAP(TicketEngine ticketEngine) throws SocketException {
-        this.ticketEngine = ticketEngine;
+    public CoAP(GlobalVars globalVars) throws SocketException {
         // provide an instance of a Authentication resource
         add(new CoAP_Authentication_Resource());
         add(new CoAP_Validation_Resource());
+        Logger.getLogger(CoapServer.class.getCanonicalName()).setLevel(Level.OFF);
+        Logger.getLogger("org.eclipse.californium.core.network.CoAPEndpoint").setLevel(Level.OFF);
+        
+        addListener(globalVars.getHandler().getEventListener());
+        globalVars.getHandler().setProtocolAdaptor(this);
+        globalVars.getStatus().addNewProtocolStatus(this.getClass().getSimpleName());
+        start();
     }
     
     /*
@@ -64,7 +73,7 @@ public class CoAP extends CoapServer {
         public CoAP_Authentication_Resource() {
             
             // set resource identifier
-            super(ticketEngine, "Authentication",true);
+            super(globalVars, "Authentication",true);
             
             // set display name
             getAttributes().setTitle("Authentication Resource");
@@ -108,7 +117,7 @@ public class CoAP extends CoapServer {
         public CoAP_Validation_Resource() {
             
             // set resource identifier
-            super(ticketEngine, "Validation",true);
+            super(globalVars, "Validation",true);
             
             // set display name
             getAttributes().setTitle("Validation Resource");
@@ -117,7 +126,7 @@ public class CoAP extends CoapServer {
         @Override
         public void medusaHandlePUT(CoapExchange exchange) {
             
-                Ticket ticket = ticketEngine.getTicket(exchange.getRequestText());
+                Ticket ticket = globalVars.getTicketEngine().getTicket(exchange.getRequestText());
                 
                 // TODO: Add more parameters to check
                 if(ticket != null) {

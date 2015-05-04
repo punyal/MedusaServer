@@ -14,13 +14,17 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  ******************************************************************************/
-package com.punyal.medusaserver.core.medusa;
+package com.punyal.medusaserver.protocols.rest;
 
-/**
- * Constants List
- */
-public class MedusaConstants {
-    public static final int version = 0;
-    public static final int subVersion = 2;
+import com.punyal.medusaserver.core.GlobalVars;
+
+
+public class REST {
+    private GlobalVars globalVars;
+    
+    public REST(GlobalVars globalVars) {
+        globalVars.getStatus().addNewProtocolStatus(this.getClass().getSimpleName());
+        globalVars.getStatus().setProtocolStatus(this.getClass().getSimpleName(), false);
+    }
     
 }

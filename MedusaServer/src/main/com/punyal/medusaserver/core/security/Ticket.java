@@ -24,6 +24,7 @@ public class Ticket  implements Comparable<Ticket>{
     private final InetAddress address;
     private String userName;
     private String userPass;
+    private String userType;
     private byte ticket[];
     private final String authenticator;
     private long expireTime;
@@ -51,6 +52,14 @@ public class Ticket  implements Comparable<Ticket>{
     
     public void setUserPass(String userPass) {
         this.userPass = userPass;
+    }
+    
+    public String getUserType() {
+        return userType;
+    }
+    
+    public void setUserType(String userType) {
+        this.userType = userType;
     }
     
     public String getUserPass() {
