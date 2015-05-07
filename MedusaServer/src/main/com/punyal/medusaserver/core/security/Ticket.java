@@ -26,6 +26,7 @@ public class Ticket  implements Comparable<Ticket>{
     private String userName;
     private String userPass;
     private String userType;
+    private String userInfo;
     private ArrayList<String> connections;
     private byte ticket[];
     private final String authenticator;
@@ -35,6 +36,8 @@ public class Ticket  implements Comparable<Ticket>{
         this.address = address;
         userName = null;
         userPass = null;
+        userType = null;
+        userInfo = null;
         ticket = null;
         connections = new ArrayList<>();
         expireTime = (new Date()).getTime() + (AUTHENTICATION_CODE_TIMEOUT);
@@ -63,6 +66,14 @@ public class Ticket  implements Comparable<Ticket>{
     
     public void setUserType(String userType) {
         this.userType = userType;
+    }
+    
+    public String getUserInfo() {
+        return userInfo;
+    }
+    
+    public void setUserInfo(String userInfo) {
+        this.userInfo = userInfo;
     }
     
     public String getUserPass() {

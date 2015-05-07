@@ -37,9 +37,9 @@ public final class NetMonitorDB {
     }
     
     
-    public void addNode(String nodeName, String nodeType) {
-        mySQL.Update("INSERT INTO `arrowhead_network`.`nodes` (`name`, `description`, `type`) VALUES ('"+nodeName+"', '', '"+nodeType+"');");
-        mySQL.Update("INSERT INTO `arrowhead_network`.`updates` (`command`, `name`, `type`, `updatetime`) VALUES ('new', '"+nodeName+"', '"+nodeType+"',  NOW());");  
+    public void addNode(String nodeName, String nodeType, String nodeInfo) {
+        mySQL.Update("INSERT INTO `arrowhead_network`.`nodes` (`name`, `description`, `type`) VALUES ('"+nodeName+"', '"+nodeInfo+"', '"+nodeType+"');");
+        mySQL.Update("INSERT INTO `arrowhead_network`.`updates` (`command`, `name`, `description`, `type`, `updatetime`) VALUES ('new', '"+nodeName+"', '"+nodeInfo+"', '"+nodeType+"',  NOW());");  
     }
     
     public void removeNode(String nodeName) {

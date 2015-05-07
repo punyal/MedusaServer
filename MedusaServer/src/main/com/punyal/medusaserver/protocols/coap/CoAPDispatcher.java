@@ -105,8 +105,16 @@ public class CoAPDispatcher {
                     else
                         userType = attFilterID.getValueString();
                     
+                    String userInfo = "";
                     
-                    String ticketInfo = ticketEngine.createTicket4User(coapReq.getSourceAddress(), userName, timeout, userType);
+                    JSONObject json = (JSONObject)JSONValue.parse(coapReq.getRequestText());
+                    try {
+                        userInfo = (String) json.get(JSON_INFO);
+                    } catch(Exception e) {
+                        System.err.println("JSON eX "+ e);
+                    }
+                    
+                    String ticketInfo = ticketEngine.createTicket4User(coapReq.getSourceAddress(), userName, timeout, userType, userInfo, "CoAP");
                     
                     
                     if(ticketInfo == null) {

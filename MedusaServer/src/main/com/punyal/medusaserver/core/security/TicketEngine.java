@@ -132,18 +132,34 @@ public class TicketEngine extends Thread{
     
     private ArrayList<Ticket> getPossibleAuthenticationTicketsByAddress(InetAddress address) {
         ArrayList<Ticket> possibleTickets = new ArrayList<>();
+        for (Ticket ticket : ticketList) {
+            if (ticket.getAddress().equals(address))
+                possibleTickets.add(ticket);
+        }
+        /*
+        
         int i=0;
         while(ticketList.size() > i) {
             if(ticketList.get(i).getAddress().equals(address))
                 possibleTickets.add(ticketList.get(i));
             i++;
-        }
+        }*/
         return possibleTickets;
     }
     
     private synchronized ArrayList<Ticket> getPossibleTicketsByAddress(InetAddress address, String userName) {
         ArrayList<Ticket> possibleTickets = new ArrayList<>();
-
+        
+        try {
+            for (Ticket ticket : ticketList) {
+                if (ticket.getAddress().equals(address) && ticket.getUserName().equals(userName))
+                    possibleTickets.add(ticket);
+            }
+        } catch (NullPointerException e) {
+             LOGGER.log(Level.WARNING, "Get Possible Tickets By Address exception {0}\n values address: {1}userName: {2}", new Object[]{e, address, userName});
+        }
+        
+        /*
         for (int i = 0; i < ticketList.size() ; i++) {
             Ticket temp = ticketList.get(i);
             try {
@@ -152,7 +168,7 @@ public class TicketEngine extends Thread{
             } catch(NullPointerException e) {
                 LOGGER.log(Level.WARNING, "Get Possible Tickets By Address exception " + e);
             }
-        }
+        }*/
         
         return possibleTickets;
     }
@@ -199,7 +215,7 @@ public class TicketEngine extends Thread{
         return null;
     }
     
-    public synchronized String createTicket4User(InetAddress address, String userName, long expireTime, String userType) {
+    public synchronized String createTicket4User(InetAddress address, String userName, long expireTime, String userType, String userInfo, String userProtocol) {
         Ticket ticket;
         ArrayList<Ticket> possibleList = getPossibleTicketsByAddress(address, userName);
         if(possibleList.isEmpty()) {
@@ -217,10 +233,13 @@ public class TicketEngine extends Thread{
         if(ticket.getTicket() == null) {
             ticket.setUserName(userName);
             ticket.setUserType(userType);
+            ticket.setUserInfo(userInfo);
             ticket.setTicket(randomizer.generate8bytes());
             ticket.setExpireTime(expireTime);
             Collections.sort(ticketList);
-            netDB.addNode(userName, userType);
+            
+            userInfo = String.format(" <b>IP:</b> %s <br> <b>Supported Protocols:</b> %s <br> <b>Valid Time:</b> %s <br> <b>Info:</b> %s", address.toString().split("/")[1], userProtocol, new Date(ticket.getExpireTime()), userInfo);
+            netDB.addNode(userName, userType, userInfo);
         }
         
         JSONObject json = new JSONObject();
