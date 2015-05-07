@@ -34,7 +34,10 @@ public class Configuration {
     public static String JSON_USER_PASSWORD = "userPass";
     public static String JSON_TIME_TO_EXPIRE = "ExpireTime";
     public static String JSON_AUTHENTICATOR = "Authenticator";
+    public static String JSON_MY_TICKET = "MyTicket";
     public static String JSON_TICKET = "Ticket";
+    public static String JSON_ADDRESS = "Address";
+    public static String JSON_INFO = "Info";
     
     // RADIUS Configuration
     public static String RADIUS_SERVER_IP = "localhost";
@@ -43,7 +46,7 @@ public class Configuration {
     
     // MySQL Authentication Configuration
     public static String MySQL_AUTHENTICATION_USER = "root";
-    public static String MySQL_AUTHENTICATION_USER_PASSWORD = "";
+    public static String MySQL_AUTHENTICATION_USER_PASSWORD = "Arrowhead2015&&";
     public static String MySQL_AUTHENTICATION_SERVER = "localhost";
     public static String MySQL_AUTHENTICATION_DBNAME = "rd";
     
