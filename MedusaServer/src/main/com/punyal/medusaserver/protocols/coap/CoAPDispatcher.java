@@ -27,6 +27,7 @@ import static com.punyal.medusaserver.core.medusa.Configuration.*;
 import com.punyal.medusaserver.core.security.TicketEngine;
 import com.punyal.medusaserver.protocols.RadiusAuthenticationThread;
 import com.punyal.medusaserver.utils.UnitConversion;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 import org.eclipse.californium.core.server.resources.CoapExchange;
@@ -39,9 +40,13 @@ public class CoAPDispatcher {
     public static void dispatchRequest(CoapExchange coapReq, TicketEngine ticketEngine, EventMessage globalEvent) {
         switch(coapReq.getRequestCode()) {
             case GET: // Request a Authenticator Code
-                coapReq.respond(ticketEngine.generateAuthenticator(coapReq.getSourceAddress()));
+                System.out.println(new SimpleDateFormat("HH:mm:ss.SSS").format(new Date())+" <- "+coapReq.getRequestText());
+                String response = ticketEngine.generateAuthenticator(coapReq.getSourceAddress());
+                System.out.println(new SimpleDateFormat("HH:mm:ss.SSS").format(new Date())+" -> "+response);
+                coapReq.respond(response);
                 break;
             case PUT: // Request a valid Ticket
+                System.out.println(new SimpleDateFormat("HH:mm:ss.SSS").format(new Date())+"<- "+coapReq.getRequestText());
                 String userName = null;
                 String userPass = null;
                 
@@ -121,6 +126,8 @@ public class CoAPDispatcher {
                         coapReq.respond(ResponseCode.INTERNAL_SERVER_ERROR, "Ticket Generation Error");
                     }
                     else {
+                        
+                        System.out.println(new SimpleDateFormat("HH:mm:ss.SSS").format(new Date())+"-> "+ticketInfo);
                         coapReq.respond(ticketInfo);
                     } 
                     break;

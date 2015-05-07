@@ -55,25 +55,28 @@ public class TicketEngine extends Thread{
             // CLEAN OLD TICKETS & AUTHENTICATORS ==============================
             long actualTime = (new Date()).getTime();
             while((!ticketList.isEmpty())  && (ticketList.get(0).getExpireTime() < actualTime)) {
-                Ticket tmp = ticketList.remove(0);
-                tmp.getUserName();
-                netDB.removeNode(tmp.getUserName());
-                
-                if (tmp.getConnections().size() > 0) {
-                    for( int i=0; i<tmp.getConnections().size(); i++) {
-                        netDB.removeLink(tmp.getUserName(), tmp.getConnections().get(i).toString());
+                synchronized (this) {
+                    Ticket tmp = ticketList.remove(0);
+                    tmp.getUserName();
+                    netDB.removeNode(tmp.getUserName());
+
+                    if (tmp.getConnections().size() > 0) {
+                        for( int i=0; i<tmp.getConnections().size(); i++) {
+                            netDB.removeLink(tmp.getUserName(), tmp.getConnections().get(i).toString());
+                        }
                     }
+
+
+
+                    if(tmp.getTicket() == null)
+                        System.err.println("Authenticator EXPIRED ["+ tmp.getAuthenticator()
+                                +"] @ "+tmp.getAddress());
+                    else
+                        System.err.println("Ticket EXPIRED ["+UnitConversion.ByteArray2Hex(tmp.getTicket())
+                                +"] for user \""+tmp.getUserName()+"\" @ "+tmp.getAddress());
                 }
                 
                 
-                /*
-                if(tmp.getTicket() == null)
-                    System.err.println("Authenticator EXPIRED ["+ tmp.getAuthenticator()
-                            +"] @ "+tmp.getAddress());
-                else
-                    System.err.println("Ticket EXPIRED ["+UnitConversion.ByteArray2Hex(tmp.getTicket())
-                            +"] for user \""+tmp.getUserName()+"\" @ "+tmp.getAddress());
-                */
             }
             // CLEAN OLD TICKETS & AUTHENTICATORS (END)=========================
             
@@ -151,12 +154,16 @@ public class TicketEngine extends Thread{
         ArrayList<Ticket> possibleTickets = new ArrayList<>();
         
         try {
-            for (Ticket ticket : ticketList) {
-                if (ticket.getAddress().equals(address) && ticket.getUserName().equals(userName))
-                    possibleTickets.add(ticket);
+            synchronized (this) {
+                for (Ticket ticket : ticketList) {
+                    if (ticket == null) System.out.println("Null Ticket");
+                    else
+                        if (ticket.getAddress().equals(address) && ticket.getUserName().equals(userName))
+                            possibleTickets.add(ticket);
+                }
             }
         } catch (NullPointerException e) {
-             LOGGER.log(Level.WARNING, "Get Possible Tickets By Address exception {0}\n values address: {1}userName: {2}", new Object[]{e, address, userName});
+             LOGGER.log(Level.WARNING, "Get Possible Tickets By Address exception at {0}\naddress:{1} userName:{2}", new Object[]{e, address, userName});
         }
         
         /*
@@ -176,7 +183,7 @@ public class TicketEngine extends Thread{
     public synchronized String checkUserPass(InetAddress address, String userName, String cryptedPass) {
         ArrayList<Ticket> possibleList = getPossibleAuthenticationTicketsByAddress(address);
         if(possibleList.isEmpty()) {
-            System.out.println("Possible List Empty!");
+            //System.out.println("Possible List Empty!");
             return null;
         }
         
@@ -219,7 +226,7 @@ public class TicketEngine extends Thread{
         Ticket ticket;
         ArrayList<Ticket> possibleList = getPossibleTicketsByAddress(address, userName);
         if(possibleList.isEmpty()) {
-            System.out.println("Possible List Empty!");
+            //System.out.println("Possible List Empty!");
             return null;
         }
         // TODO: Check This on the Future
