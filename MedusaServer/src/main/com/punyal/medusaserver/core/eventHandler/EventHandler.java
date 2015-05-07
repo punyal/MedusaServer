@@ -16,6 +16,7 @@
  ******************************************************************************/
 package com.punyal.medusaserver.core.eventHandler;
 
+import com.punyal.medusaserver.core.GlobalVars;
 import com.punyal.medusaserver.protocols.coap.CoAPDispatcher;
 import com.punyal.medusaserver.protocols.coap.CoAP;
 import com.punyal.medusaserver.core.db.AuthenticationDB;
@@ -38,8 +39,6 @@ public class EventHandler extends Thread {
     private final EventMessage globalEvent;
     private final TicketEngine ticketEngine;
     private Status status;
-    private AuthenticationDB authDB;
-    private NetMonitorDB netDB;
     private Reporter reporter;
     
     private List<EventMedusa> messageQueue;
@@ -53,10 +52,11 @@ public class EventHandler extends Thread {
      * Constructor to set the dispatcher
      * @param ticketEngine
      */
-    public EventHandler(Status status,TicketEngine ticketEngine) {
+    public EventHandler(GlobalVars globalVars) {
         running = false;
-        this.status = status;
-        this.ticketEngine = ticketEngine;
+        status = globalVars.getStatus();
+        ticketEngine = globalVars.getTicketEngine();
+        
         this.globalEvent = new EventMessage() {
             @Override
             public void fireEvent(EventMedusa evt) {
@@ -82,8 +82,6 @@ public class EventHandler extends Thread {
          * Initialization of all subsystems
          */
         ticketEngine.start();
-        authDB = new AuthenticationDB(status, MySQL_AUTHENTICATION_SERVER, MySQL_AUTHENTICATION_DBNAME, MySQL_AUTHENTICATION_USER, MySQL_AUTHENTICATION_USER_PASSWORD);
-        netDB = new NetMonitorDB(status, MySQL_NETMONITOR_SERVER, MySQL_NETMONITOR_DBNAME, MySQL_NETMONITOR_USER, MySQL_NETMONITOR_USER_PASSWORD);
         reporter = new Reporter(ticketEngine.getTicketList());
         //reporter.start();
         messageQueue = new ArrayList<>();
@@ -94,10 +92,10 @@ public class EventHandler extends Thread {
                 EventMedusa evt = messageQueue.remove(0);
                 switch(evt.getProtocol()) {
                     case RADIUS:
-                        RADIUSDispatcher.dispatchResponse((Packetizer)evt.getSource(), ticketEngine, authDB);
+                        RADIUSDispatcher.dispatchResponse((Packetizer)evt.getSource(), ticketEngine);
                         break;
                     case CoAP:
-                        CoAPDispatcher.dispatchRequest((CoapExchange)evt.getSource(),  authDB, ticketEngine, globalEvent);
+                        CoAPDispatcher.dispatchRequest((CoapExchange)evt.getSource(), ticketEngine, globalEvent);
                         break;
                     case REST:
                         System.out.println("REST");

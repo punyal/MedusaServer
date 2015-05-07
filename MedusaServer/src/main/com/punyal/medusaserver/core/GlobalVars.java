@@ -16,7 +16,10 @@
  ******************************************************************************/
 package com.punyal.medusaserver.core;
 
+import com.punyal.medusaserver.core.db.AuthenticationDB;
+import com.punyal.medusaserver.core.db.NetMonitorDB;
 import com.punyal.medusaserver.core.eventHandler.EventHandler;
+import static com.punyal.medusaserver.core.medusa.Configuration.*;
 import com.punyal.medusaserver.core.medusa.Status;
 import com.punyal.medusaserver.core.security.TicketEngine;
 
@@ -24,23 +27,36 @@ public class GlobalVars {
     private final TicketEngine ticketEngine;
     private final EventHandler evtHandler;
     private final Status status;
+    private final AuthenticationDB authDB;
+    private final NetMonitorDB netDB;
     
     public GlobalVars() {
         status = new Status(); // Create and set the server status
-        ticketEngine = new TicketEngine(); // Create a ticketEngine
-        evtHandler = new EventHandler(status, ticketEngine); // Create and Start the Event Handler
+        authDB = new AuthenticationDB(status, MySQL_AUTHENTICATION_SERVER, MySQL_AUTHENTICATION_DBNAME, MySQL_AUTHENTICATION_USER, MySQL_AUTHENTICATION_USER_PASSWORD);
+        netDB = new NetMonitorDB(status, MySQL_NETMONITOR_SERVER, MySQL_NETMONITOR_DBNAME, MySQL_NETMONITOR_USER, MySQL_NETMONITOR_USER_PASSWORD);
+        ticketEngine = new TicketEngine(this); // Create a ticketEngine
+        evtHandler = new EventHandler(this); // Create and Start the Event Handler
         evtHandler.start();
     }
     
-    public TicketEngine getTicketEngine() {
+    public synchronized TicketEngine getTicketEngine() {
         return ticketEngine;
     }
     
-    public EventHandler getHandler() {
+    public synchronized EventHandler getHandler() {
         return evtHandler;
     }
     
-    public Status getStatus() {
+    public synchronized Status getStatus() {
         return status;
     }
+    
+    public synchronized AuthenticationDB getAuthDB() {
+        return authDB;
+    }
+    
+    public synchronized NetMonitorDB getNetDB() {
+        return netDB;
+    }
 }
+    

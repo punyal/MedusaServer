@@ -17,6 +17,9 @@
 package com.punyal.medusaserver.core.db;
 
 import com.punyal.medusaserver.core.medusa.Status;
+import static java.lang.Thread.sleep;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class NetMonitorDB {
     DBsql mySQL;
@@ -30,7 +33,28 @@ public final class NetMonitorDB {
         mySQL.Update("truncate table links");
         mySQL.Update("truncate table nodes");
         mySQL.Update("truncate table updates");
-        mySQL.Update("INSERT INTO `arrowhead_network`.`updates` (`command`, `updatetime`) VALUES ('refresh', NOW()+2);");
+        mySQL.Update("INSERT INTO `arrowhead_network`.`updates` (`command`, `updatetime`) VALUES ('refresh', NOW());");
+    }
+    
+    
+    public void addNode(String nodeName, String nodeType) {
+        mySQL.Update("INSERT INTO `arrowhead_network`.`nodes` (`name`, `description`, `type`) VALUES ('"+nodeName+"', '', '"+nodeType+"');");
+        mySQL.Update("INSERT INTO `arrowhead_network`.`updates` (`command`, `name`, `type`, `updatetime`) VALUES ('new', '"+nodeName+"', '"+nodeType+"',  NOW());");  
+    }
+    
+    public void removeNode(String nodeName) {
+        mySQL.Update("DELETE FROM `nodes` WHERE `name` = '"+nodeName+"';");
+        mySQL.Update("INSERT INTO `arrowhead_network`.`updates` (`command`, `name`, `updatetime`) VALUES ('delete', '"+nodeName+"',  NOW());");
+    }
+    
+    public void addLink(String from, String to) {
+        mySQL.Update("INSERT INTO `arrowhead_network`.`links` (`from`, `to`) VALUES ('"+from+"', '"+to+"');");
+        mySQL.Update("INSERT INTO `arrowhead_network`.`updates` (`command`, `from`, `to`, `updatetime`) VALUES ('new', '"+from+"', '"+to+"', NOW());");  
+    }
+    
+    public void removeLink(String from, String to) {
+        mySQL.Update("DELETE FROM `links` WHERE `from` = '"+from+"' AND `to` = '"+to+"';");
+        mySQL.Update("INSERT INTO `arrowhead_network`.`updates` (`command`, `from`, `to`, `updatetime`) VALUES ('delete', '"+from+"', '"+to+"', NOW());");  
     }
     
 }

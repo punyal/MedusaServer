@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 import org.eclipse.californium.core.CoapServer;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 public class CoAP extends CoapServer {
     public static EventConstants.Priority PRIORITY = NORMAL;
@@ -54,14 +55,17 @@ public class CoAP extends CoapServer {
      */
     public CoAP(GlobalVars globalVars) throws SocketException {
         // provide an instance of a Authentication resource
+        this.globalVars = globalVars;
         add(new CoAP_Authentication_Resource());
         add(new CoAP_Validation_Resource());
         Logger.getLogger(CoapServer.class.getCanonicalName()).setLevel(Level.OFF);
         Logger.getLogger("org.eclipse.californium.core.network.CoAPEndpoint").setLevel(Level.OFF);
+        Logger.getLogger("org.eclipse.californium.core.network.Matcher").setLevel(Level.OFF);
         
-        addListener(globalVars.getHandler().getEventListener());
-        globalVars.getHandler().setProtocolAdaptor(this);
-        globalVars.getStatus().addNewProtocolStatus(this.getClass().getSimpleName());
+        
+        addListener(this.globalVars.getHandler().getEventListener());
+        this.globalVars.getHandler().setProtocolAdaptor(this);
+        this.globalVars.getStatus().addNewProtocolStatus(this.getClass().getSimpleName());
         start();
     }
     
@@ -126,18 +130,40 @@ public class CoAP extends CoapServer {
         @Override
         public void medusaHandlePUT(CoapExchange exchange) {
             
-                Ticket ticket = globalVars.getTicketEngine().getTicket(exchange.getRequestText());
-                
-                // TODO: Add more parameters to check
-                if(ticket != null) {
-                    JSONObject json = new JSONObject();
-                    json.put(JSON_TIME_TO_EXPIRE, ticket.getExpireTime()- (new Date()).getTime());
-                    json.put(JSON_USER_NAME, ticket.getUserName());
-                    exchange.respond(json.toString());
-                } else {
-                    exchange.respond("Invalid Ticket");
-                }
-                
+            JSONObject json = (JSONObject) JSONValue.parse(exchange.getRequestText());
+            String providerTicket = json.get(JSON_MY_TICKET).toString();
+            String consumerTicket = json.get(JSON_TICKET).toString();
+            
+            Ticket ticketProvider = globalVars.getTicketEngine().getTicket(providerTicket);
+            Ticket ticketConsumer = globalVars.getTicketEngine().getTicket(consumerTicket);
+            
+            if (ticketProvider == null) {
+                //System.out.println("Invalid Ticket Provider");
+                exchange.respond("Invalid Ticket");
+                return;
+            }
+            
+            if (ticketConsumer == null) {
+                //System.out.println("Invalid Ticket Consumer");
+                exchange.respond("Invalid Ticket");
+                return;
+            }
+            
+            //System.out.println("Validation OK!");
+            json.clear();
+            try {
+                json.put(JSON_TIME_TO_EXPIRE, ticketConsumer.getExpireTime()- (new Date()).getTime());
+                json.put(JSON_USER_NAME, ticketConsumer.getUserName());
+                json.put(JSON_ADDRESS, ticketConsumer.getAddress().toString());
+            } catch(NullPointerException e) {
+                System.err.println("Null pointer info: "+e);
+            }
+            exchange.respond(json.toString());
+            String providerName = ticketProvider.getUserName();
+            ticketConsumer.addConnection(providerName);
+            globalVars.getNetDB().addLink(ticketConsumer.getUserName(), ticketProvider.getUserName());
+            
+            
             
         }
     }

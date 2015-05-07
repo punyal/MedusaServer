@@ -16,7 +16,9 @@
  ******************************************************************************/
 package com.punyal.medusaserver.core.security;
 
+import com.punyal.medusaserver.core.GlobalVars;
 import com.punyal.medusaserver.core.db.AuthenticationDB;
+import com.punyal.medusaserver.core.db.NetMonitorDB;
 import static com.punyal.medusaserver.core.medusa.Configuration.*;
 import com.punyal.medusaserver.utils.UnitConversion;
 import java.net.InetAddress;
@@ -31,12 +33,16 @@ public class TicketEngine extends Thread{
     private static final Logger LOGGER = Logger.getLogger(TicketEngine.class.getCanonicalName());
     private boolean running;
     private final Randomizer randomizer;
-    private ArrayList<Ticket> ticketList;
+    private final ArrayList<Ticket> ticketList;
+    private final AuthenticationDB authDB;
+    private final NetMonitorDB netDB;
     
-    public TicketEngine() {
+    public TicketEngine(GlobalVars globalVars) {
         running = false;
         randomizer = new Randomizer();
         ticketList = new ArrayList<>();
+        netDB = globalVars.getNetDB();
+        authDB = globalVars.getAuthDB();
     }
     
     @Override
@@ -50,6 +56,16 @@ public class TicketEngine extends Thread{
             long actualTime = (new Date()).getTime();
             while((!ticketList.isEmpty())  && (ticketList.get(0).getExpireTime() < actualTime)) {
                 Ticket tmp = ticketList.remove(0);
+                tmp.getUserName();
+                netDB.removeNode(tmp.getUserName());
+                
+                if (tmp.getConnections().size() > 0) {
+                    for( int i=0; i<tmp.getConnections().size(); i++) {
+                        netDB.removeLink(tmp.getUserName(), tmp.getConnections().get(i).toString());
+                    }
+                }
+                
+                
                 /*
                 if(tmp.getTicket() == null)
                     System.err.println("Authenticator EXPIRED ["+ tmp.getAuthenticator()
@@ -127,20 +143,21 @@ public class TicketEngine extends Thread{
     
     private synchronized ArrayList<Ticket> getPossibleTicketsByAddress(InetAddress address, String userName) {
         ArrayList<Ticket> possibleTickets = new ArrayList<>();
-        int i=0;
-        while(ticketList.size() > i) {
+
+        for (int i = 0; i < ticketList.size() ; i++) {
+            Ticket temp = ticketList.get(i);
             try {
-                if(ticketList.get(i).getAddress().equals(address) && ticketList.get(i).getUserName().equals(userName))
-                    possibleTickets.add(ticketList.get(i));
+                if (temp.getAddress().equals(address) && temp.getUserName().equals(userName))
+                    possibleTickets.add(temp);
             } catch(NullPointerException e) {
                 LOGGER.log(Level.WARNING, "Get Possible Tickets By Address exception " + e);
             }
-            i++;
         }
+        
         return possibleTickets;
     }
     
-    public synchronized String checkUserPass(AuthenticationDB authDB, InetAddress address, String userName, String cryptedPass) {
+    public synchronized String checkUserPass(InetAddress address, String userName, String cryptedPass) {
         ArrayList<Ticket> possibleList = getPossibleAuthenticationTicketsByAddress(address);
         if(possibleList.isEmpty()) {
             System.out.println("Possible List Empty!");
@@ -182,7 +199,7 @@ public class TicketEngine extends Thread{
         return null;
     }
     
-    public synchronized String createTicket4User(AuthenticationDB authDB, InetAddress address, String userName, long expireTime, String userType) {
+    public synchronized String createTicket4User(InetAddress address, String userName, long expireTime, String userType) {
         Ticket ticket;
         ArrayList<Ticket> possibleList = getPossibleTicketsByAddress(address, userName);
         if(possibleList.isEmpty()) {
@@ -191,7 +208,7 @@ public class TicketEngine extends Thread{
         }
         // TODO: Check This on the Future
         if(possibleList.size() > 1) {
-            System.out.println("More than one same-user");
+            //System.out.println("More than one same-user");
             ticket = possibleList.get(possibleList.size()-1);
         } else {
             ticket = possibleList.get(0);
@@ -203,6 +220,7 @@ public class TicketEngine extends Thread{
             ticket.setTicket(randomizer.generate8bytes());
             ticket.setExpireTime(expireTime);
             Collections.sort(ticketList);
+            netDB.addNode(userName, userType);
         }
         
         JSONObject json = new JSONObject();
@@ -231,19 +249,25 @@ public class TicketEngine extends Thread{
         return ticketList;
     }
     
-    public synchronized void printList(ArrayList<Ticket> list) {
-        System.out.println("-------- Tickets --------");
+    @Override
+    public synchronized String toString() {
+        return toString(ticketList);
+    }
+    
+    public synchronized String toString(ArrayList<Ticket> list) {
+        String toPrint = "-------- Tickets --------";
         
-        list.stream().forEach((ticket) -> {
-            System.out.println("IP[" + ticket.getAddress() +
+        for (Ticket ticket : list) {
+            toPrint += "IP[" + ticket.getAddress() +
                     "] UserName[" + ticket.getUserName() +
                     "] UserPass[" + ticket.getUserPass()+
                     "] Ticket[" + UnitConversion.ByteArray2Hex(ticket.getTicket())+
                     "] Authenticator[" + ticket.getAuthenticator()+
                     "] ExpireTime[" + UnitConversion.Timestamp2String(ticket.getExpireTime())+
-                    "]" );
-        });
+                    "]";
+        }
         
-        System.out.println("-------------------------");
+        toPrint += "-------------------------";
+        return toPrint;
     }
 }

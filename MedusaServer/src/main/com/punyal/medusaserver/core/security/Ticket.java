@@ -18,6 +18,7 @@ package com.punyal.medusaserver.core.security;
 
 import static com.punyal.medusaserver.core.medusa.Configuration.*;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class Ticket  implements Comparable<Ticket>{
@@ -25,6 +26,7 @@ public class Ticket  implements Comparable<Ticket>{
     private String userName;
     private String userPass;
     private String userType;
+    private ArrayList<String> connections;
     private byte ticket[];
     private final String authenticator;
     private long expireTime;
@@ -34,6 +36,7 @@ public class Ticket  implements Comparable<Ticket>{
         userName = null;
         userPass = null;
         ticket = null;
+        connections = new ArrayList<>();
         expireTime = (new Date()).getTime() + (AUTHENTICATION_CODE_TIMEOUT);
         this.authenticator = authenticator;
     }
@@ -84,6 +87,31 @@ public class Ticket  implements Comparable<Ticket>{
     
     public long getExpireTime() {
         return expireTime;
+    }
+    
+    private int findConnection(String connection) {
+        if (connections.size() > 0) {
+            for (int i=0; i < connections.size(); i++) {
+                if (connections.get(i).equals(connection))
+                    return i;
+            }
+        }
+        return -1;
+    }
+    
+    public synchronized void addConnection(String connection) {
+        if( findConnection(connection) == -1 )
+            connections.add(connection);
+    }
+    
+    public void removeConnection(String connection) {
+        int index = findConnection(connection);
+        if( index != -1 )
+            connections.remove(index);
+    }
+    
+    public ArrayList<String> getConnections() {
+        return connections;
     }
     
     public boolean isValid() {
