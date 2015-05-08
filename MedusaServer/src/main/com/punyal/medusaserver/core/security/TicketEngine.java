@@ -24,6 +24,8 @@ import static com.punyal.medusaserver.core.medusa.Configuration.*;
 import static com.punyal.medusaserver.core.medusa.MedusaConstants.*;
 import com.punyal.medusaserver.utils.UnitConversion;
 import java.net.InetAddress;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -54,11 +56,14 @@ public class TicketEngine extends Thread{
         running = true;
         LOGGER.log(Level.INFO, "Thread [{0}] running", TicketEngine.class.getSimpleName());
         
+        ResultSet result;
+        
         while(running) {
             
             // CLEAN OLD TICKETS & AUTHENTICATORS ==============================
             long actualTime = (new Date()).getTime();
             while((!ticketList.isEmpty())  && (ticketList.get(0).getExpireTime() < actualTime)) {
+                
                 synchronized (this) {
                     Ticket tmp = ticketList.remove(0);
                     tmp.getUserName();
@@ -82,6 +87,19 @@ public class TicketEngine extends Thread{
                 
                 
             }
+            // DB style
+            result = ticketDB.getExpired();
+            if (result != null) {
+                try {
+                    while (result.next()) {
+                        System.out.println("Expired: "+result.getString("id"));
+                        ticketDB.deactivate(result.getString("id"));
+                    }
+                } catch (SQLException ex) {
+                    Logger.getLogger(TicketEngine.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
             // CLEAN OLD TICKETS & AUTHENTICATORS (END)=========================
             
             // Sleep 1ms to prevent synchronization errors it's possible to remove with other code :)
@@ -102,11 +120,13 @@ public class TicketEngine extends Thread{
     public synchronized String generateAuthenticator(InetAddress address) {
         String authenticator = UnitConversion.ByteArray2Hex(randomizer.generate16bytes());
         // with DB
-        ticketDB.newAuthenticator(address, authenticator);
+        String expireTime = ticketDB.newAuthenticator(address, authenticator);
+        
         // with List
         Ticket ticket = new Ticket(address, authenticator);
         ticketList.add(ticket);
         Collections.sort(ticketList);
+        
         JSONObject json = new JSONObject();
         json.put(JSON_AUTHENTICATOR, ticket.getAuthenticator());
         json.put(JSON_TIME_TO_EXPIRE, ticket.getExpireTime() - (new Date()).getTime());
@@ -189,11 +209,7 @@ public class TicketEngine extends Thread{
     }
     
     public synchronized String checkUserPass(InetAddress address, String userName, String cryptedPass) {
-        ArrayList<Ticket> possibleList = getPossibleAuthenticationTicketsByAddress(address);
-        if(possibleList.isEmpty()) {
-            //System.out.println("Possible List Empty!");
-            return null;
-        }
+        System.out.println("here");
         
         String decodedPass = authDB.getPass4User(userName);
         if(decodedPass == null) {
@@ -201,6 +217,23 @@ public class TicketEngine extends Thread{
             return null;
         }
         
+        ResultSet result = ticketDB.getAuthenticatorsByAddress(address);
+        int id = -1;
+        if (result != null) {
+            try {
+                while (result.next()) {
+                    if (Cryptonizer.encryptCoAP(AUTHENTICATION_SECRET_KEY, result.getString("authenticator"), decodedPass).equals(cryptedPass)) {
+                        id = result.getInt("id");
+                        System.out.println("Match found at ID: "+ id + " = "+ decodedPass);
+                        return decodedPass;
+                    }
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(TicketEngine.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return null;
+        /*
         int i=0;
         String validPass = null;
         while(possibleList.size() > i) {
@@ -228,6 +261,7 @@ public class TicketEngine extends Thread{
         }
         
         return null;
+                */
     }
     
     public synchronized String createTicket4User(InetAddress address, String userName, long expireTime, String userType, String userInfo, String userProtocol) {

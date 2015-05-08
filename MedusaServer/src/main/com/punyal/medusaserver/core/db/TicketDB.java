@@ -19,6 +19,8 @@ package com.punyal.medusaserver.core.db;
 import static com.punyal.medusaserver.core.medusa.MedusaConstants.AUTHENTICATION_CODE_TIMEOUT;
 import com.punyal.medusaserver.core.medusa.Status;
 import java.net.InetAddress;
+import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public final class TicketDB {
@@ -33,10 +35,23 @@ public final class TicketDB {
         mySQL.Update("truncate table users");
     }
     
-    public int newAuthenticator(InetAddress address, String authenticator) {
-        mySQL.Update("INSERT INTO `ticket_engine`.`users` (`address`, `authenticator`, `expire_time`) VALUES ('"+address.toString().split("/")[1]+"', '"+authenticator+"', NOW());");
-        System.out.println(new Date((new Date()).getTime() + (AUTHENTICATION_CODE_TIMEOUT)));
-        return mySQL.Update("INSERT INTO `ticket_engine`.`users` (`address`, `authenticator`, `expire_time`) VALUES ('"+address.toString().split("/")[1]+"', '"+authenticator+"', (NOW()+INTERVAL "+AUTHENTICATION_CODE_TIMEOUT/1000+" SECOND));");
+    public String newAuthenticator(InetAddress address, String authenticator) {
+        String expireTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date((new Date()).getTime() + (AUTHENTICATION_CODE_TIMEOUT)));
+        if (mySQL.Update("INSERT INTO `ticket_engine`.`users` (`address`, `authenticator`,  `expire_time`) VALUES ('"+address.toString().split("/")[1]+"', '"+authenticator+"',  '"+expireTime+"');") == 1)
+            return expireTime;
+        return null;
+    }
+    
+    public ResultSet getExpired() {
+        return mySQL.Query("SELECT * FROM `users` WHERE `active` = true AND `expire_time` < NOW();");
+    }
+    
+    public void deactivate(String id) {
+        mySQL.Update("UPDATE  `ticket_engine`.`users` SET  `active` =  '0' WHERE  `users`.`id` ="+id+";");
+    }
+    
+    public ResultSet getAuthenticatorsByAddress(InetAddress address) {
+        return mySQL.Query("SELECT `id`,`authenticator` FROM `users` WHERE `address` = '"+address.toString().split("/")[1]+"' AND `active` = true");
     }
     
 }

@@ -1,14 +1,11 @@
 
 package com.punyal.medusaserver.test;
 
-import com.punyal.medusaserver.core.db.NetMonitorDB;
 import com.punyal.medusaserver.core.db.TicketDB;
 import static com.punyal.medusaserver.core.medusa.Configuration.*;
 import com.punyal.medusaserver.core.medusa.Status;
 import com.punyal.medusaserver.core.security.Randomizer;
-import com.punyal.medusaserver.utils.UnitConversion;
 import static java.lang.Thread.sleep;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
