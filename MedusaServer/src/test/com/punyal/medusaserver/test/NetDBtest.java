@@ -14,7 +14,7 @@ public class NetDBtest {
         System.out.println("# Test (START)");
         Status status = new Status();
         NetMonitorDB netDB = new NetMonitorDB(status, MySQL_NETMONITOR_SERVER, MySQL_NETMONITOR_DBNAME, MySQL_NETMONITOR_USER, MySQL_NETMONITOR_USER_PASSWORD);
-   
+   /*
         System.out.println("Reset DB");
         netDB.resetDB();
         zzz(2000);
@@ -48,7 +48,7 @@ public class NetDBtest {
         zzz(2000);
         System.out.println("Add Jens");
         netDB.addNode("Jens", "human");
-        zzz(2000);
+        zzz(2000);*/
         netDB.removeLink("TempServer", "Mulle1");
         netDB.removeLink("TempServer", "Mulle2");
         netDB.removeLink("TempServer", "Mulle3");

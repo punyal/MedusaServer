@@ -19,7 +19,9 @@ package com.punyal.medusaserver.core.security;
 import com.punyal.medusaserver.core.GlobalVars;
 import com.punyal.medusaserver.core.db.AuthenticationDB;
 import com.punyal.medusaserver.core.db.NetMonitorDB;
+import com.punyal.medusaserver.core.db.TicketDB;
 import static com.punyal.medusaserver.core.medusa.Configuration.*;
+import static com.punyal.medusaserver.core.medusa.MedusaConstants.*;
 import com.punyal.medusaserver.utils.UnitConversion;
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -36,6 +38,7 @@ public class TicketEngine extends Thread{
     private final ArrayList<Ticket> ticketList;
     private final AuthenticationDB authDB;
     private final NetMonitorDB netDB;
+    private final TicketDB ticketDB;
     
     public TicketEngine(GlobalVars globalVars) {
         running = false;
@@ -43,6 +46,7 @@ public class TicketEngine extends Thread{
         ticketList = new ArrayList<>();
         netDB = globalVars.getNetDB();
         authDB = globalVars.getAuthDB();
+        ticketDB = globalVars.getTicketDB();
     }
     
     @Override
@@ -96,7 +100,11 @@ public class TicketEngine extends Thread{
     }
     
     public synchronized String generateAuthenticator(InetAddress address) {
-        Ticket ticket = new Ticket(address, UnitConversion.ByteArray2Hex(randomizer.generate16bytes()));
+        String authenticator = UnitConversion.ByteArray2Hex(randomizer.generate16bytes());
+        // with DB
+        ticketDB.newAuthenticator(address, authenticator);
+        // with List
+        Ticket ticket = new Ticket(address, authenticator);
         ticketList.add(ticket);
         Collections.sort(ticketList);
         JSONObject json = new JSONObject();

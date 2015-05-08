@@ -20,7 +20,27 @@ package com.punyal.medusaserver.core.medusa;
  * Constants List
  */
 public class MedusaConstants {
+    // Version Constants
     public static final int version = 0;
     public static final int subVersion = 2;
+    
+    // Performance Constants
+    public static long AUTHENTICATION_CODE_TIMEOUT = 10000; // 1000*10 = 10000(10s)
+    public static long RADIUS_TIMEOUT = 1000; // 1000*1 (1s)
+    public static long GENERIC_TICKET_TIMEOUT = 300000; // 1000*60*5 = 300000 (5m)
+    
+    // Message Format
+    public static String JSON_USER_NAME = "userName";
+    public static String JSON_USER_PASSWORD = "userPass";
+    public static String JSON_TIME_TO_EXPIRE = "ExpireTime";
+    public static String JSON_AUTHENTICATOR = "Authenticator";
+    public static String JSON_MY_TICKET = "MyTicket";
+    public static String JSON_TICKET = "Ticket";
+    public static String JSON_ADDRESS = "Address";
+    public static String JSON_INFO = "Info";
+    
+    
+    
+    
     
 }

@@ -16,7 +16,7 @@
  ******************************************************************************/
 package com.punyal.medusaserver.core.security;
 
-import static com.punyal.medusaserver.core.medusa.Configuration.*;
+import static com.punyal.medusaserver.core.medusa.MedusaConstants.*;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Date;

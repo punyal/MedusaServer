@@ -22,11 +22,8 @@ import static com.punyal.medusaserver.core.eventHandler.EventConstants.Priority.
 import com.punyal.medusaserver.core.eventHandler.EventMedusa;
 import com.punyal.medusaserver.core.eventHandler.EventMessage;
 import com.punyal.medusaserver.core.eventHandler.EventSource;
-import com.punyal.medusaserver.core.medusa.Configuration;
-import static com.punyal.medusaserver.core.medusa.Configuration.*;
+import static com.punyal.medusaserver.core.medusa.MedusaConstants.*;
 import com.punyal.medusaserver.core.security.Ticket;
-import com.punyal.medusaserver.core.security.TicketEngine;
-import com.punyal.medusaserver.utils.UnitConversion;
 import java.net.SocketException;
 import java.util.Date;
 import java.util.logging.Level;
