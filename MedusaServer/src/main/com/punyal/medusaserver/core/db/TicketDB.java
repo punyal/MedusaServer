@@ -18,10 +18,15 @@ package com.punyal.medusaserver.core.db;
 
 import static com.punyal.medusaserver.core.medusa.MedusaConstants.AUTHENTICATION_CODE_TIMEOUT;
 import com.punyal.medusaserver.core.medusa.Status;
+import com.punyal.medusaserver.core.security.User;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class TicketDB {
     DBsql mySQL;
@@ -54,4 +59,47 @@ public final class TicketDB {
         return mySQL.Query("SELECT `id`,`authenticator` FROM `users` WHERE `address` = '"+address.toString().split("/")[1]+"' AND `active` = true");
     }
     
+    public int setUserNameByID(int id, String userName) {
+        return mySQL.Update("UPDATE `ticket_engine`.`users` SET `name` = '"+userName+"' WHERE `users`.`id` = "+id+";");
+    }
+    
+    public ResultSet getUsersByAddressAndName(InetAddress address, String userName) {
+        return mySQL.Query("SELECT `id`,`authenticator` FROM `users` WHERE `address` = '"+address.toString().split("/")[1]+"' AND `name` = '"+userName+"' AND `active` = true");
+    }
+    
+    public User getUserByTicket(String ticket) {
+        ResultSet result = mySQL.Query("SELECT * FROM `users` WHERE `ticket` = '"+ticket+"' AND `active` = true");
+        
+        if (result != null) {
+            try {
+                if (result.next()) {
+                    if (result.isLast()) {
+                        try {
+                            return new User(InetAddress.getByName(result.getString("address")),
+                                    result.getString("name"),
+                                    result.getString("type"),
+                                    result.getString("info"),
+                                    result.getString("connections"),
+                                    result.getString("ticket"),
+                                    result.getString("authenticator"),
+                                    result.getString("expire_time") );
+                        } catch (UnknownHostException ex) {
+                            Logger.getLogger(TicketDB.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    } else
+                        System.out.println("more than one user with same ticket!!");
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(TicketDB.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        return null;
+        
+    }
+    
+    public int setAllData(int id, String type, String info, String ticket, String expireTime) {
+        return mySQL.Update("UPDATE `ticket_engine`.`users` SET `type` = '"+type+"',`ticket` = '"+ticket+"'," +
+            "`info` = '"+info+"', `expire_time` = '"+expireTime+"' WHERE `users`.`id` = "+id+";");
+    }
 }

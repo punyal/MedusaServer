@@ -44,7 +44,7 @@ public class CoAPDispatcher {
                 coapReq.respond(response);
                 break;
             case PUT: // Request a valid Ticket
-                System.out.println(new SimpleDateFormat("HH:mm:ss.SSS").format(new Date())+"<- "+coapReq.getRequestText());
+                System.out.println(new SimpleDateFormat("HH:mm:ss.SSS").format(new Date())+" <- "+coapReq.getRequestText());
                 String userName = null;
                 String userPass = null;
                 
@@ -59,7 +59,6 @@ public class CoAPDispatcher {
                     coapReq.respond(ResponseCode.NOT_ACCEPTABLE, "Wrong user-password format");
                 }else{
                     userPass = ticketEngine.checkUserPass(coapReq.getSourceAddress(), userName, userPass);
-                    
                     if(userPass == null) {
                         coapReq.respond(ResponseCode.UNAUTHORIZED, "Bad Encryption"); // Change this message to a generic to increase the security
                     } else {
@@ -85,8 +84,6 @@ public class CoAPDispatcher {
         else {            
             switch(radRequest.response.getCode()){
                 case ACCESS_ACCEPT:
-                    // TODO: Create the ticket and extra information with the RADIUS response
-                    
                     String userName = radRequest.getAttributeByType(USER_NAME).getValueString();
                     
                     Message radResponse = radRequest.response;
@@ -125,7 +122,7 @@ public class CoAPDispatcher {
                     }
                     else {
                         
-                        System.out.println(new SimpleDateFormat("HH:mm:ss.SSS").format(new Date())+"-> "+ticketInfo);
+                        System.out.println(new SimpleDateFormat("HH:mm:ss.SSS").format(new Date())+" -> "+ticketInfo);
                         coapReq.respond(ticketInfo);
                     } 
                     break;

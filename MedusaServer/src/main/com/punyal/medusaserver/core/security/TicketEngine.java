@@ -26,6 +26,8 @@ import com.punyal.medusaserver.utils.UnitConversion;
 import java.net.InetAddress;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -37,7 +39,7 @@ public class TicketEngine extends Thread{
     private static final Logger LOGGER = Logger.getLogger(TicketEngine.class.getCanonicalName());
     private boolean running;
     private final Randomizer randomizer;
-    private final ArrayList<Ticket> ticketList;
+    //private final ArrayList<Ticket> ticketList;
     private final AuthenticationDB authDB;
     private final NetMonitorDB netDB;
     private final TicketDB ticketDB;
@@ -45,7 +47,7 @@ public class TicketEngine extends Thread{
     public TicketEngine(GlobalVars globalVars) {
         running = false;
         randomizer = new Randomizer();
-        ticketList = new ArrayList<>();
+        //ticketList = new ArrayList<>();
         netDB = globalVars.getNetDB();
         authDB = globalVars.getAuthDB();
         ticketDB = globalVars.getTicketDB();
@@ -60,34 +62,7 @@ public class TicketEngine extends Thread{
         
         while(running) {
             
-            // CLEAN OLD TICKETS & AUTHENTICATORS ==============================
-            long actualTime = (new Date()).getTime();
-            while((!ticketList.isEmpty())  && (ticketList.get(0).getExpireTime() < actualTime)) {
-                
-                synchronized (this) {
-                    Ticket tmp = ticketList.remove(0);
-                    tmp.getUserName();
-                    netDB.removeNode(tmp.getUserName());
-
-                    if (tmp.getConnections().size() > 0) {
-                        for( int i=0; i<tmp.getConnections().size(); i++) {
-                            netDB.removeLink(tmp.getUserName(), tmp.getConnections().get(i).toString());
-                        }
-                    }
-
-
-
-                    if(tmp.getTicket() == null)
-                        System.err.println("Authenticator EXPIRED ["+ tmp.getAuthenticator()
-                                +"] @ "+tmp.getAddress());
-                    else
-                        System.err.println("Ticket EXPIRED ["+UnitConversion.ByteArray2Hex(tmp.getTicket())
-                                +"] for user \""+tmp.getUserName()+"\" @ "+tmp.getAddress());
-                }
-                
-                
-            }
-            // DB style
+            // CLEAN OLD TICKETS & AUTHENTICATORS ============================== 
             result = ticketDB.getExpired();
             if (result != null) {
                 try {
@@ -122,35 +97,39 @@ public class TicketEngine extends Thread{
         // with DB
         String expireTime = ticketDB.newAuthenticator(address, authenticator);
         
-        // with List
-        Ticket ticket = new Ticket(address, authenticator);
-        ticketList.add(ticket);
-        Collections.sort(ticketList);
+        SimpleDateFormat fDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Long expire;
+        try {
+            expire = fDate.parse(expireTime).getTime();
+        } catch (ParseException ex) {
+            expire = (long) 0;
+            Logger.getLogger(TicketEngine.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         JSONObject json = new JSONObject();
-        json.put(JSON_AUTHENTICATOR, ticket.getAuthenticator());
-        json.put(JSON_TIME_TO_EXPIRE, ticket.getExpireTime() - (new Date()).getTime());
+        json.put(JSON_AUTHENTICATOR, authenticator);
+        json.put(JSON_TIME_TO_EXPIRE, expire - (new Date()).getTime());
         return json.toString();
     }
-    
+    /*
     private synchronized void removeByTicket(Ticket ticket) {
         ticketList.remove(ticket);
-    }
-    
+    }*/
+    /*
     private synchronized void removeByAuthenticator(String authenticator) {
         ticketList.stream().forEach((ticket) -> {
             if( ticket.getAuthenticator().equals(authenticator) )
                 ticketList.remove(ticket);
         });
-    }
-    
+    }*/
+    /*
     private synchronized void removeByUser(String userName) {
         ticketList.stream().forEach((ticket) -> {
             if( ticket.getUserName().equals(userName) )
                 ticketList.remove(ticket);
         });
-    }
-    
+    }*/
+    /*
     private synchronized Ticket findByUser(String userName) {
         int i=0;
         while(ticketList.size() > i) {
@@ -159,25 +138,18 @@ public class TicketEngine extends Thread{
             i++;
         }
         return null;
-    }
+    }*/
     
+    /*
     private ArrayList<Ticket> getPossibleAuthenticationTicketsByAddress(InetAddress address) {
         ArrayList<Ticket> possibleTickets = new ArrayList<>();
         for (Ticket ticket : ticketList) {
             if (ticket.getAddress().equals(address))
                 possibleTickets.add(ticket);
         }
-        /*
-        
-        int i=0;
-        while(ticketList.size() > i) {
-            if(ticketList.get(i).getAddress().equals(address))
-                possibleTickets.add(ticketList.get(i));
-            i++;
-        }*/
         return possibleTickets;
-    }
-    
+    }*/
+    /*
     private synchronized ArrayList<Ticket> getPossibleTicketsByAddress(InetAddress address, String userName) {
         ArrayList<Ticket> possibleTickets = new ArrayList<>();
         
@@ -194,22 +166,10 @@ public class TicketEngine extends Thread{
              LOGGER.log(Level.WARNING, "Get Possible Tickets By Address exception at {0}\naddress:{1} userName:{2}", new Object[]{e, address, userName});
         }
         
-        /*
-        for (int i = 0; i < ticketList.size() ; i++) {
-            Ticket temp = ticketList.get(i);
-            try {
-                if (temp.getAddress().equals(address) && temp.getUserName().equals(userName))
-                    possibleTickets.add(temp);
-            } catch(NullPointerException e) {
-                LOGGER.log(Level.WARNING, "Get Possible Tickets By Address exception " + e);
-            }
-        }*/
-        
         return possibleTickets;
-    }
+    }*/
     
     public synchronized String checkUserPass(InetAddress address, String userName, String cryptedPass) {
-        System.out.println("here");
         
         String decodedPass = authDB.getPass4User(userName);
         if(decodedPass == null) {
@@ -223,8 +183,7 @@ public class TicketEngine extends Thread{
             try {
                 while (result.next()) {
                     if (Cryptonizer.encryptCoAP(AUTHENTICATION_SECRET_KEY, result.getString("authenticator"), decodedPass).equals(cryptedPass)) {
-                        id = result.getInt("id");
-                        System.out.println("Match found at ID: "+ id + " = "+ decodedPass);
+                        ticketDB.setUserNameByID(result.getInt("id"), userName);
                         return decodedPass;
                     }
                 }
@@ -233,70 +192,40 @@ public class TicketEngine extends Thread{
             }
         }
         return null;
-        /*
-        int i=0;
-        String validPass = null;
-        while(possibleList.size() > i) {
-            validPass = Cryptonizer.encryptCoAP(AUTHENTICATION_SECRET_KEY, possibleList.get(i).getAuthenticator(), decodedPass);
-            //System.out.println(validPass +" vs "+cryptedPass);
-            if(validPass.equals(cryptedPass))
-                break;
-            i++;
-        }
         
-        if(possibleList.size() == i) {
-            System.out.println("No valid passwords on the list");
-            return null;
-        }
-        
-        if(validPass == null) {
-            System.out.println("No valid Password!");
-            return null;
-        }
-        
-        if(validPass.equals(cryptedPass)) {
-            possibleList.get(i).setUserName(userName);
-            possibleList.get(i).setUserPass(decodedPass);
-            return decodedPass;
-        }
-        
-        return null;
-                */
     }
     
     public synchronized String createTicket4User(InetAddress address, String userName, long expireTime, String userType, String userInfo, String userProtocol) {
-        Ticket ticket;
-        ArrayList<Ticket> possibleList = getPossibleTicketsByAddress(address, userName);
-        if(possibleList.isEmpty()) {
-            //System.out.println("Possible List Empty!");
-            return null;
-        }
-        // TODO: Check This on the Future
-        if(possibleList.size() > 1) {
-            //System.out.println("More than one same-user");
-            ticket = possibleList.get(possibleList.size()-1);
-        } else {
-            ticket = possibleList.get(0);
-        }
         
-        if(ticket.getTicket() == null) {
-            ticket.setUserName(userName);
-            ticket.setUserType(userType);
-            ticket.setUserInfo(userInfo);
-            ticket.setTicket(randomizer.generate8bytes());
-            ticket.setExpireTime(expireTime);
-            Collections.sort(ticketList);
+        ResultSet result = ticketDB.getUsersByAddressAndName(address, userName);
+        if (result != null) {
+            try {
+                result.next();
+                if (result.isLast()) {
+                    String expire = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(expireTime));
+                    String ticket = UnitConversion.ByteArray2Hex(randomizer.generate8bytes());
+                    userInfo = String.format(" <b>IP:</b> %s <br> <b>Supported Protocols:</b> %s <br> <b>Valid Time:</b> %s <br> <b>Info:</b> %s", address.toString().split("/")[1], userProtocol, expire , userInfo);
+                    ticketDB.setAllData(result.getInt("id"), userType, userInfo, ticket , expire);
+                    JSONObject json = new JSONObject();
+                    json.put(JSON_TICKET, ticket);
+                    json.put(JSON_TIME_TO_EXPIRE, expireTime - (new Date()).getTime()); // Recalculate to solve synchronization issues
+                    return json.toString();
+                } else {
+                    System.out.println("More than one user!!");
+                    return null;
+                }
+                    
+            } catch (SQLException ex) {
+                Logger.getLogger(TicketEngine.class.getName()).log(Level.SEVERE, null, ex);
+            }
             
-            userInfo = String.format(" <b>IP:</b> %s <br> <b>Supported Protocols:</b> %s <br> <b>Valid Time:</b> %s <br> <b>Info:</b> %s", address.toString().split("/")[1], userProtocol, new Date(ticket.getExpireTime()), userInfo);
-            netDB.addNode(userName, userType, userInfo);
         }
         
-        JSONObject json = new JSONObject();
-        json.put(JSON_TICKET, UnitConversion.ByteArray2Hex(ticket.getTicket()));
-        json.put(JSON_TIME_TO_EXPIRE, ticket.getExpireTime() - (new Date()).getTime()); // Recalculate to solve synchronization issues
-        return json.toString();
+        System.out.println("No UserData on the server");
+        return null;
     }
     
+    /*
     public synchronized Ticket getTicket(String ticket) {
         int i=0;
         while(ticketList.size() > i) {
@@ -311,17 +240,17 @@ public class TicketEngine extends Thread{
             i++;
         }
         return null;
-    }
-    
+    }*/
+    /*
     public synchronized ArrayList<Ticket> getTicketList() {
         return ticketList;
-    }
-    
+    }*/
+    /*
     @Override
     public synchronized String toString() {
         return toString(ticketList);
-    }
-    
+    }*/
+    /*
     public synchronized String toString(ArrayList<Ticket> list) {
         String toPrint = "-------- Tickets --------";
         
@@ -337,5 +266,5 @@ public class TicketEngine extends Thread{
         
         toPrint += "-------------------------";
         return toPrint;
-    }
+    }*/
 }

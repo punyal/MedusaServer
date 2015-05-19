@@ -19,12 +19,8 @@ package com.punyal.medusaserver.core.eventHandler;
 import com.punyal.medusaserver.core.GlobalVars;
 import com.punyal.medusaserver.protocols.coap.CoAPDispatcher;
 import com.punyal.medusaserver.protocols.coap.CoAP;
-import com.punyal.medusaserver.core.db.AuthenticationDB;
-import com.punyal.medusaserver.core.db.NetMonitorDB;
-import static com.punyal.medusaserver.core.medusa.Configuration.*;
 import com.punyal.medusaserver.core.medusa.Status;
 import com.punyal.medusaserver.core.security.TicketEngine;
-import com.punyal.medusaserver.logger.Reporter;
 import com.punyal.medusaserver.protocols.*;
 import com.punyal.medusaserver.utils.Packetizer;
 import java.util.ArrayList;
@@ -39,7 +35,6 @@ public class EventHandler extends Thread {
     private final EventMessage globalEvent;
     private final TicketEngine ticketEngine;
     private Status status;
-    private Reporter reporter;
     
     private List<EventMedusa> messageQueue;
     
@@ -82,7 +77,7 @@ public class EventHandler extends Thread {
          * Initialization of all subsystems
          */
         ticketEngine.start();
-        reporter = new Reporter(ticketEngine.getTicketList());
+        //reporter = new Reporter(ticketEngine.getTicketList());
         //reporter.start();
         messageQueue = new ArrayList<>();
         

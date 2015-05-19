@@ -23,7 +23,7 @@ import com.punyal.medusaserver.core.eventHandler.EventMedusa;
 import com.punyal.medusaserver.core.eventHandler.EventMessage;
 import com.punyal.medusaserver.core.eventHandler.EventSource;
 import static com.punyal.medusaserver.core.medusa.MedusaConstants.*;
-import com.punyal.medusaserver.core.security.Ticket;
+import com.punyal.medusaserver.core.security.User;
 import java.net.SocketException;
 import java.util.Date;
 import java.util.logging.Level;
@@ -131,16 +131,21 @@ public class CoAP extends CoapServer {
             String providerTicket = json.get(JSON_MY_TICKET).toString();
             String consumerTicket = json.get(JSON_TICKET).toString();
             
+            /*
             Ticket ticketProvider = globalVars.getTicketEngine().getTicket(providerTicket);
             Ticket ticketConsumer = globalVars.getTicketEngine().getTicket(consumerTicket);
+            */
+            User provider = globalVars.getTicketDB().getUserByTicket(providerTicket);
+            User consumer = globalVars.getTicketDB().getUserByTicket(consumerTicket);
             
-            if (ticketProvider == null) {
+            
+            if (provider == null) {
                 //System.out.println("Invalid Ticket Provider");
                 exchange.respond("Invalid Ticket");
                 return;
             }
             
-            if (ticketConsumer == null) {
+            if (consumer == null) {
                 //System.out.println("Invalid Ticket Consumer");
                 exchange.respond("Invalid Ticket");
                 return;
@@ -149,16 +154,16 @@ public class CoAP extends CoapServer {
             //System.out.println("Validation OK!");
             json.clear();
             try {
-                json.put(JSON_TIME_TO_EXPIRE, ticketConsumer.getExpireTime()- (new Date()).getTime());
-                json.put(JSON_USER_NAME, ticketConsumer.getUserName());
-                json.put(JSON_ADDRESS, ticketConsumer.getAddress().toString());
+                json.put(JSON_TIME_TO_EXPIRE, consumer.getExpireTime()- (new Date()).getTime());
+                json.put(JSON_USER_NAME, consumer.getUserName());
+                json.put(JSON_ADDRESS, consumer.getAddress().toString());
             } catch(NullPointerException e) {
                 System.err.println("Null pointer info: "+e);
             }
             exchange.respond(json.toString());
-            String providerName = ticketProvider.getUserName();
-            ticketConsumer.addConnection(providerName);
-            globalVars.getNetDB().addLink(ticketConsumer.getUserName(), ticketProvider.getUserName());
+            String providerName = provider.getUserName();
+            //ticketConsumer.addConnection(providerName);
+            //globalVars.getNetDB().addLink(consumer.getUserName(), provider.getUserName());
             
             
             

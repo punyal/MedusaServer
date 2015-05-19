@@ -63,8 +63,6 @@ public class RadiusAuthenticationThread extends Thread {
     
     private void RadiusResponse(EventObject evt) {
         EventMedusa newEvt;
-        ((Message)evt.getSource()).print();
-        ((Message)evt.getSource()).response.print();
         if(((Message)evt.getSource()).response == null){
             newEvt = new EventMedusa(RADIUS.PRIORITY,
                 Protocol.RADIUS,

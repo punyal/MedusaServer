@@ -49,7 +49,7 @@ public class MedusaCoapResource extends CoapResource{
         
         // NOT PUBLIC RESOURCE
         try {
-            if(globalVars.getTicketEngine().getTicket(UnitConversion.ByteArray2Hex(UnitConversion.getTicketFromCoapExchange(exchange))) != null) {
+            if (globalVars.getTicketDB().getUserByTicket(UnitConversion.ByteArray2Hex(UnitConversion.getTicketFromCoapExchange(exchange))) != null) {
                 medusaHandleGET(exchange);
                 return;
             }
@@ -67,7 +67,7 @@ public class MedusaCoapResource extends CoapResource{
         }
         // NOT PUBLIC RESOURCE
         try {
-            if(globalVars.getTicketEngine().getTicket(UnitConversion.ByteArray2Hex(UnitConversion.getTicketFromCoapExchange(exchange))) != null) {
+            if (globalVars.getTicketDB().getUserByTicket(UnitConversion.ByteArray2Hex(UnitConversion.getTicketFromCoapExchange(exchange))) != null) {
                 medusaHandlePOST(exchange);
                 return;
             }
@@ -85,7 +85,7 @@ public class MedusaCoapResource extends CoapResource{
         }
         // NOT PUBLIC RESOURCE
         try {
-            if(globalVars.getTicketEngine().getTicket(UnitConversion.ByteArray2Hex(UnitConversion.getTicketFromCoapExchange(exchange))) != null) {
+            if (globalVars.getTicketDB().getUserByTicket(UnitConversion.ByteArray2Hex(UnitConversion.getTicketFromCoapExchange(exchange))) != null) {
                 medusaHandlePUT(exchange);
                 return;
             }
@@ -103,7 +103,7 @@ public class MedusaCoapResource extends CoapResource{
         }
         // NOT PUBLIC RESOURCE
         try {
-            if(globalVars.getTicketEngine().getTicket(UnitConversion.ByteArray2Hex(UnitConversion.getTicketFromCoapExchange(exchange))) != null) {
+            if (globalVars.getTicketDB().getUserByTicket(UnitConversion.ByteArray2Hex(UnitConversion.getTicketFromCoapExchange(exchange))) != null) {
                 medusaHandleDELETE(exchange);
                 return;
             }
