@@ -18,8 +18,6 @@ package com.punyal.medusaserver.protocols;
 
 import com.punyal.medusaserver.protocols.coap.CoAPDispatcher;
 import com.punyal.jrad.core.radius.Message;
-import com.punyal.medusaserver.core.db.AuthenticationDB;
-import com.punyal.medusaserver.core.db.NetMonitorDB;
 import com.punyal.medusaserver.core.security.TicketEngine;
 import com.punyal.medusaserver.utils.Packetizer;
 import org.eclipse.californium.core.server.resources.CoapExchange;
