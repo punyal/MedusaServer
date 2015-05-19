@@ -135,6 +135,8 @@ public class CoAP extends CoapServer {
             Ticket ticketProvider = globalVars.getTicketEngine().getTicket(providerTicket);
             Ticket ticketConsumer = globalVars.getTicketEngine().getTicket(consumerTicket);
             */
+            
+            //System.out.print("Validation: "+providerTicket+" and "+consumerTicket);
             User provider = globalVars.getTicketDB().getUserByTicket(providerTicket);
             User consumer = globalVars.getTicketDB().getUserByTicket(consumerTicket);
             
@@ -161,7 +163,12 @@ public class CoAP extends CoapServer {
                 System.err.println("Null pointer info: "+e);
             }
             exchange.respond(json.toString());
-            String providerName = provider.getUserName();
+            
+            
+            //updates for web interface
+            globalVars.getTicketDB().webAddLinkFrom(consumer.getUserName(), provider.getUserName());
+                        
+            //String providerName = provider.getUserName();
             //ticketConsumer.addConnection(providerName);
             //globalVars.getNetDB().addLink(consumer.getUserName(), provider.getUserName());
             

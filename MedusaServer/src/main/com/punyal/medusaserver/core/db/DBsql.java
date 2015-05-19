@@ -27,20 +27,28 @@ import java.util.logging.Logger;
 
 public class DBsql {
     private static final Logger LOGGER = Logger.getLogger(DBsql.class.getCanonicalName());
-    private Connection connection;
+    private Connection connection = null;
+    private Statement statement = null;
+    private final String server;
+    private final String dbname;
+    private final String user;
+    private final String password;
     
     public DBsql(Status status, String mainName, String server, String dbname, String user, String password) {
+        status.addNewDBStatus(mainName);
+        this.server = server;
+        this.dbname = dbname;
+        this.user = user;
+        this.password = password;
+        
         try {
-            status.addNewDBStatus(mainName);
             connection = DriverManager.getConnection("jdbc:mysql://"+server+"/"+dbname, user, password);
         } catch (SQLException ex) {
-            status.setDBStatus(mainName, false);
-            LOGGER.log(Level.WARNING, "Unable to connect to database");
+            LOGGER.log(Level.WARNING, "Unable to connect to database " + ex);
         }
     }
     
     public ResultSet Query(String query) {
-        Statement statement;
         ResultSet resultSet = null;
         if(connection != null) {
             try {
@@ -64,12 +72,10 @@ public class DBsql {
     }
     
     public int Update(String query) {
-        Statement statement;
         int result = 0;
         if(connection != null) {
             try {
                 statement = connection.createStatement();
-                
                 if(statement != null) {
                     try {
                         result = statement.executeUpdate(query);

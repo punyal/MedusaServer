@@ -63,16 +63,22 @@ public class TicketEngine extends Thread{
         while(running) {
             
             // CLEAN OLD TICKETS & AUTHENTICATORS ============================== 
-            result = ticketDB.getExpired();
-            if (result != null) {
-                try {
-                    while (result.next()) {
-                        System.out.println("Expired: "+result.getString("id"));
-                        ticketDB.deactivate(result.getString("id"));
-                    }
-                } catch (SQLException ex) {
-                    Logger.getLogger(TicketEngine.class.getName()).log(Level.SEVERE, null, ex);
+            try {
+                result = ticketDB.getExpired();
+                if (result != null) {
+                        while (result.next()) {
+                            //System.out.println("Expired: "+result.getString("id"));
+                            ticketDB.deactivate(result.getString("id"));
+                            if (result.getString("name") != "null") {
+                                ticketDB.webRemoveUser(result.getString("name"));
+                                ticketDB.webRemoveLinkFrom(result.getString("name"));
+                            }
+                                
+                        }
+                    ticketDB.cleanExpiredAuthenticators();
                 }
+            } catch (SQLException ex) {
+                Logger.getLogger(TicketEngine.class.getName()).log(Level.SEVERE, null, ex);
             }
             
             // CLEAN OLD TICKETS & AUTHENTICATORS (END)=========================
@@ -176,20 +182,23 @@ public class TicketEngine extends Thread{
             System.out.println("No DB data for user " + userName);
             return null;
         }
-        
-        ResultSet result = ticketDB.getAuthenticatorsByAddress(address);
-        int id = -1;
-        if (result != null) {
-            try {
+        try {
+            ResultSet result = ticketDB.getAuthenticatorsByAddress(address);
+            int id = -1;
+            if (result != null) {
                 while (result.next()) {
                     if (Cryptonizer.encryptCoAP(AUTHENTICATION_SECRET_KEY, result.getString("authenticator"), decodedPass).equals(cryptedPass)) {
+                        if (ticketDB.checkIfExist(userName)) {
+                            //System.out.println("The user is already on the system! don't add it!");
+                            return decodedPass;
+                        }
                         ticketDB.setUserNameByID(result.getInt("id"), userName);
                         return decodedPass;
                     }
                 }
-            } catch (SQLException ex) {
-                Logger.getLogger(TicketEngine.class.getName()).log(Level.SEVERE, null, ex);
             }
+        } catch (SQLException ex) {
+            Logger.getLogger(TicketEngine.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
         
@@ -197,31 +206,41 @@ public class TicketEngine extends Thread{
     
     public synchronized String createTicket4User(InetAddress address, String userName, long expireTime, String userType, String userInfo, String userProtocol) {
         
-        ResultSet result = ticketDB.getUsersByAddressAndName(address, userName);
-        if (result != null) {
-            try {
+        try {
+            ResultSet result = ticketDB.getAllUsersByAddressAndName(address, userName);
+            if (result != null) {
                 result.next();
                 if (result.isLast()) {
-                    String expire = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(expireTime));
-                    String ticket = UnitConversion.ByteArray2Hex(randomizer.generate8bytes());
-                    userInfo = String.format(" <b>IP:</b> %s <br> <b>Supported Protocols:</b> %s <br> <b>Valid Time:</b> %s <br> <b>Info:</b> %s", address.toString().split("/")[1], userProtocol, expire , userInfo);
-                    ticketDB.setAllData(result.getInt("id"), userType, userInfo, ticket , expire);
                     JSONObject json = new JSONObject();
-                    json.put(JSON_TICKET, ticket);
-                    json.put(JSON_TIME_TO_EXPIRE, expireTime - (new Date()).getTime()); // Recalculate to solve synchronization issues
+                    if (result.getString("ticket") == null || result.getBoolean("active") == false) {
+                        String expire = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(expireTime));
+                        String ticket = UnitConversion.ByteArray2Hex(randomizer.generate8bytes());
+                        userInfo = String.format(" <b>IP:</b> %s <br> <b>Supported Protocols:</b> %s <br> <b>Valid Time:</b> %s <br> <b>Info:</b> %s", address.toString().split("/")[1], userProtocol, expire , userInfo);
+                        ticketDB.setAllData(result.getInt("id"), userType, userInfo, ticket , expire);
+                        //updates for web interface
+                        ticketDB.webAddUser(userName, userInfo, userType);
+                        json.put(JSON_TICKET, ticket);
+                        json.put(JSON_TIME_TO_EXPIRE, expireTime - (new Date()).getTime()); // Recalculate to solve synchronization issues
+                    } else {
+                        try {
+                            expireTime = (new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")).parse(result.getString("expire_time")).getTime();
+                        } catch (ParseException ex) {
+                            expireTime = 0; //repeat the proccess
+                            Logger.getLogger(TicketEngine.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        json.put(JSON_TICKET, result.getString("ticket"));
+                        json.put(JSON_TIME_TO_EXPIRE, expireTime - (new Date()).getTime()); // Recalculate to solve synchronization issues
+                    }
                     return json.toString();
                 } else {
-                    System.out.println("More than one user!!");
+                    System.out.println("No UserData on the server (something is working wrong)");
                     return null;
                 }
-                    
-            } catch (SQLException ex) {
-                Logger.getLogger(TicketEngine.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
+            System.out.println("Null UserData response");
+        } catch (SQLException ex) {
+            Logger.getLogger(TicketEngine.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        System.out.println("No UserData on the server");
         return null;
     }
     
