@@ -17,7 +17,6 @@
 package com.punyal.medusaserver.protocols.coap;
 
 import com.punyal.medusaserver.core.GlobalVars;
-import com.punyal.medusaserver.core.security.TicketEngine;
 import com.punyal.medusaserver.utils.UnitConversion;
 import org.eclipse.californium.core.CoapResource;
 import org.eclipse.californium.core.coap.CoAP;

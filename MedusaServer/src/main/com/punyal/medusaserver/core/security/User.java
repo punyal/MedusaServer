@@ -16,17 +16,15 @@
  ******************************************************************************/
 package com.punyal.medusaserver.core.security;
 
-import static com.punyal.medusaserver.core.medusa.MedusaConstants.*;
 import com.punyal.medusaserver.utils.UnitConversion;
 import java.net.InetAddress;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class User{
+    private final int id;
     private final InetAddress address;
     private final String userName;
     private final String userType;
@@ -35,8 +33,10 @@ public class User{
     private final byte ticket[];
     private final String authenticator;
     private final long expireTime;
+    private final boolean active;
             
-    public User(InetAddress address, String userName, String userType, String userInfo, String connections, String ticket, String authenticator, String expireTime) {
+    public User(int id, InetAddress address, String userName, String userType, String userInfo, String connections, String ticket, String authenticator, String expireTime, boolean active) {
+        this.id = id;
         this.address = address;
         this.userName = userName;
         this.userType = userType;
@@ -44,6 +44,7 @@ public class User{
         this.connections = connections;
         this.ticket = UnitConversion.hexStringToByteArray(ticket);
         this.authenticator = authenticator;
+        this.active = active;
         SimpleDateFormat dFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Long date;
         try {
@@ -53,6 +54,10 @@ public class User{
             Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
         }
         this.expireTime = date;
+    }
+    
+    public int getId() {
+        return id;
     }
     
     public InetAddress getAddress() {
@@ -82,5 +87,9 @@ public class User{
         
     public long getExpireTime() {
         return expireTime;
+    }
+    
+    public boolean isActive() {
+        return active;
     }
 }

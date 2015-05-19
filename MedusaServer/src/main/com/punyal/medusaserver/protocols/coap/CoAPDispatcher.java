@@ -36,6 +36,19 @@ public class CoAPDispatcher {
     private CoAPDispatcher() {}
     
     public static void dispatchRequest(CoapExchange coapReq, TicketEngine ticketEngine, EventMessage globalEvent) {
+        // Checking memory 
+        /*
+        Runtime runtime = Runtime.getRuntime();  
+
+        long maxMemory = runtime.maxMemory();  
+        long allocatedMemory = runtime.totalMemory();  
+        long freeMemory = runtime.freeMemory();  
+
+        System.out.println("free memory: \t\t" + freeMemory / 1024 + 
+                "\nallocated memory: \t" + allocatedMemory / 1024 + 
+                "\nmax memory: \t\t" + maxMemory /1024+
+                "\ntotal free memory: \t" +   
+           (freeMemory + (maxMemory - allocatedMemory)) / 1024);  */
         switch(coapReq.getRequestCode()) {
             case GET: // Request a Authenticator Code
                 System.out.println(new SimpleDateFormat("HH:mm:ss.SSS").format(new Date())+" <- "+coapReq.getRequestText());

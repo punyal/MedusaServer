@@ -16,137 +16,277 @@
  ******************************************************************************/
 package com.punyal.medusaserver.core.db;
 
-import static com.punyal.medusaserver.core.medusa.MedusaConstants.AUTHENTICATION_CODE_TIMEOUT;
+import static com.punyal.medusaserver.core.medusa.Configuration.*;
+import static com.punyal.medusaserver.core.medusa.MedusaConstants.*;
 import com.punyal.medusaserver.core.medusa.Status;
+import com.punyal.medusaserver.core.security.Cryptonizer;
 import com.punyal.medusaserver.core.security.User;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class TicketDB {
-    DBsql mySQL;
+    private final String server;
+    private final String dbname;
+    private final String user;
+    private final String password;
     
     public TicketDB(Status status, String server, String dbname, String user, String password) {
-        mySQL = new DBsql(status, this.getClass().getSimpleName(), server, dbname, user, password);
+        status.addNewDBStatus(this.getClass().getSimpleName());
+        this.server = server;
+        this.dbname = dbname;
+        this.user = user;
+        this.password = password;
         this.resetDB();
     }
     
+    private int mySQLupdate(String sql) {
+        int toReturn = 0;
+        try {
+            try (Connection connection = DriverManager.getConnection("jdbc:mysql://"+server+"/"+dbname, user, password);
+                    Statement statement = connection.createStatement()) {
+                toReturn = statement.executeUpdate(sql);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(TicketDB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return toReturn;
+    }
+    
     public void resetDB() {
-        mySQL.Update("truncate table `updates`");
-        mySQL.Update("INSERT INTO `ticket_engine`.`updates` (`command`, `updatetime`) VALUES ('refresh', NOW());");
+        mySQLupdate("truncate table `updates`");
+        mySQLupdate("INSERT INTO `ticket_engine`.`updates` (`command`, `updatetime`) VALUES ('refresh', NOW());");
     }
     
     public String newAuthenticator(InetAddress address, String authenticator) {
         String expireTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date((new Date()).getTime() + (AUTHENTICATION_CODE_TIMEOUT)));
-        if (mySQL.Update("INSERT INTO `ticket_engine`.`users` (`address`, `authenticator`,  `expire_time`) VALUES ('"+address.toString().split("/")[1]+"', '"+authenticator+"',  '"+expireTime+"');") == 1)
+        if (mySQLupdate("INSERT INTO `ticket_engine`.`users` (`address`, `authenticator`,  `expire_time`) VALUES ('"+address.toString().split("/")[1]+"', '"+authenticator+"',  '"+expireTime+"');") == 1)
             return expireTime;
         return null;
     }
     
-    public ResultSet getExpired() {
-        return mySQL.Query("SELECT * FROM `users` WHERE `active` = true AND `expire_time` < NOW();");
-    }
-    
-    public void deactivate(String id) {
-        mySQL.Update("UPDATE  `ticket_engine`.`users` SET  `active` =  '0' WHERE  `users`.`id` ="+id+";");
-    }
-    
-    public ResultSet getAuthenticatorsByAddress(InetAddress address) {
-        return mySQL.Query("SELECT `id`,`authenticator` FROM `users` WHERE `address` = '"+address.toString().split("/")[1]+"' AND `active` = true");
-    }
-    
-    public int setUserNameByID(int id, String userName) {
-        return mySQL.Update("UPDATE `ticket_engine`.`users` SET `name` = '"+userName+"' WHERE `users`.`id` = "+id+";");
-    }
-    
-    public ResultSet getActiveUsersByAddressAndName(InetAddress address, String userName) {
-        return mySQL.Query("SELECT * FROM `users` WHERE `address` = '"+address.toString().split("/")[1]+"' AND `name` = '"+userName+"' AND `active` = true");
-    }
-    
-    public ResultSet getAllUsersByAddressAndName(InetAddress address, String userName) {
-        return mySQL.Query("SELECT * FROM `users` WHERE `address` = '"+address.toString().split("/")[1]+"' AND `name` = '"+userName+"'");
-    }
-    
-    public User getUserByTicket(String ticket) {
-        ResultSet result = mySQL.Query("SELECT * FROM `users` WHERE `ticket` = '"+ticket+"' AND `active` = true");
-        
-        if (result != null) {
+    public void removeExpired() {        
+        try {
+            try (Connection connection = DriverManager.getConnection("jdbc:mysql://"+server+"/"+dbname, user, password);
+                    Statement statement = connection.createStatement();
+                    ResultSet resultSet = statement.executeQuery("SELECT * FROM `users` WHERE `active` = true AND `expire_time` < NOW();")) {
+                
+                while (resultSet.next()) {
+                    this.deactivate(resultSet.getInt("id"));
+                    if (resultSet.getString("name") != null) { // check if it's an user or a temp authenticator code
+                        this.webRemoveUser(resultSet.getString("name"));
+                        this.webRemoveLinkFrom(resultSet.getString("name"));
+                    }
+                }
+                this.cleanExpiredAuthenticators();
+                
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(TicketDB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+         /*
             try {
-                if (result.next()) {
-                    if (result.isLast()) {
-                        try {
-                            return new User(InetAddress.getByName(result.getString("address")),
-                                    result.getString("name"),
-                                    result.getString("type"),
-                                    result.getString("info"),
-                                    result.getString("connections"),
-                                    result.getString("ticket"),
-                                    result.getString("authenticator"),
-                                    result.getString("expire_time") );
-                        } catch (UnknownHostException ex) {
-                            Logger.getLogger(TicketDB.class.getName()).log(Level.SEVERE, null, ex);
+                user = ticketDB.getExpired();
+                if (user != null) {
+                    ticketDB.deactivate(user.i);
+                        while (result.next()) {
+                            //System.out.println("Expired: "+result.getString("id"));
+                            ticketDB.deactivate(result.getString("id"));
+                            if (result.getString("name") != null) {
+                                ticketDB.webRemoveUser(result.getString("name"));
+                                ticketDB.webRemoveLinkFrom(result.getString("name"));
+                            }
+                                
                         }
-                    } else
-                        System.out.println("more than one user with same ticket!!");
+                    ticketDB.cleanExpiredAuthenticators();
                 }
             } catch (SQLException ex) {
-                Logger.getLogger(TicketDB.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TicketEngine.class.getName()).log(Level.SEVERE, null, ex);
             }
-        }
-        
-        return null;
-        
+            */
+        //return mySQL.Query("SELECT * FROM `users` WHERE `active` = true AND `expire_time` < NOW();");
     }
     
-    public int setAllData(int id, String type, String info, String ticket, String expireTime) {
-        return mySQL.Update("UPDATE `ticket_engine`.`users` SET `type` = '"+type+"',`ticket` = '"+ticket+"'," +
-            "`info` = '"+info+"', `expire_time` = '"+expireTime+"', `active` = true WHERE `users`.`id` = "+id+";");
+    public void deactivate(int id) {
+        mySQLupdate("UPDATE  `ticket_engine`.`users` SET  `active` =  '0' WHERE  `users`.`id` ="+id+";");
     }
-
-    public boolean checkIfExist(String userName) {
-        ResultSet result = mySQL.Query("SELECT id FROM `users` WHERE `name` ='"+userName+"';");
+    
+    private boolean checkIfExist(String userName) {
         try {
-            if (result.next())
+            Connection connection = DriverManager.getConnection("jdbc:mysql://"+server+"/"+dbname, user, password);
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT id FROM `users` WHERE `name` ='"+userName+"';");
+            if (resultSet.next())
                 return true;
         } catch (SQLException ex) {
             Logger.getLogger(TicketDB.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
     }
-
-    public int cleanExpiredAuthenticators() {
-        return mySQL.Update("DELETE FROM `users` WHERE `name` IS NULL AND `active` = false;");
-    }
-
-    public void webAddUser(String userName, String userInfo, String userType) {
-        mySQL.Update("INSERT INTO `updates` (`command`, `name`, `info`, `type`, `updatetime`) VALUES ('new',"
-                + " '"+userName+"', '"+userInfo+"', '"+userType+"',  NOW());");
-    }
-
-    public void webRemoveUser(String userName) {
-        mySQL.Update("INSERT INTO `updates` (`command`, `name`, `updatetime`) VALUES ('delete', '"+userName+"',  NOW());");
-    }
-
-    public void webRemoveLinkFrom(String userName) {
-        ResultSet result = mySQL.Query("SELECT * FROM `links` WHERE `from` ='"+userName+"';");
+    
+    public boolean checkPass(InetAddress address, String userName, String decodedPass, String cryptedPass) {
+        boolean toReturn = false;
         try {
-            while (result.next()) {
-                mySQL.Update("INSERT INTO `updates` (`command`, `from`, `to`, `updatetime`) VALUES ('delete', '"+userName+"', '"+result.getString("to")+"', NOW());");
+            try (Connection connection = DriverManager.getConnection("jdbc:mysql://"+server+"/"+dbname, user, password);
+                    Statement statement = connection.createStatement();
+                    ResultSet resultSet = statement.executeQuery("SELECT `id`,`authenticator` FROM `users` WHERE `address` = '"+address.toString().split("/")[1]+"' AND `active` = true")) {
+                
+                while (resultSet.next()) {
+                    if (Cryptonizer.encryptCoAP(AUTHENTICATION_SECRET_KEY, resultSet.getString("authenticator"), decodedPass).equals(cryptedPass)) {
+                        if (!this.checkIfExist(userName))
+                            this.setUserNameByID(resultSet.getInt("id"), userName);
+                        toReturn = true;
+                    }
+                }
+            }
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(TicketDB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return toReturn;
+    }
+    
+    public void setUserNameByID(int id, String userName) {
+        mySQLupdate("UPDATE `ticket_engine`.`users` SET `name` = '"+userName+"' WHERE `users`.`id` = "+id+";");
+    }
+        
+    public User getUser(InetAddress address, String userName) {
+        User toReturn = null;
+        try {
+            try (Connection connection = DriverManager.getConnection("jdbc:mysql://"+server+"/"+dbname, user, password);
+                    Statement statement = connection.createStatement();
+                    ResultSet resultSet = statement.executeQuery("SELECT * FROM `users` WHERE `address` = '"+address.toString().split("/")[1]+"' AND `name` = '"+userName+"'")) {
+                
+                if (resultSet.next())
+                    if (resultSet.isLast())
+                        toReturn = new User(resultSet.getInt("id"),
+                                            address,
+                                            resultSet.getString("name"),
+                                            resultSet.getString("type"),
+                                            resultSet.getString("info"),
+                                            resultSet.getString("connections"),
+                                            resultSet.getString("ticket"),
+                                            resultSet.getString("authenticator"),
+                                            resultSet.getString("expire_time"),
+                                            resultSet.getBoolean("active"));
+            }
+        
+        } catch (SQLException ex) {
+            Logger.getLogger(TicketDB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return toReturn;
+    }
+    
+    public User getUserByTicket(String ticket) {
+        User toReturn = null;
+        
+        try {
+            try (Connection connection = DriverManager.getConnection("jdbc:mysql://"+server+"/"+dbname, user, password);
+                    Statement statement = connection.createStatement();
+                    ResultSet resultSet = statement.executeQuery("SELECT * FROM `users` WHERE `ticket` = '"+ticket+"' AND `active` = true")) {
+                
+                if (resultSet.next())
+                    if (resultSet.isLast()) {
+                        InetAddress address = null;
+                        try {
+                            address = InetAddress.getByName(resultSet.getString("address"));
+                        } catch (UnknownHostException ex) {
+                            Logger.getLogger(TicketDB.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        toReturn = new User(resultSet.getInt("id"),
+                                            address,
+                                            resultSet.getString("name"),
+                                            resultSet.getString("type"),
+                                            resultSet.getString("info"),
+                                            resultSet.getString("connections"),
+                                            resultSet.getString("ticket"),
+                                            resultSet.getString("authenticator"),
+                                            resultSet.getString("expire_time"),
+                                            resultSet.getBoolean("active"));
+                    }
             }
         } catch (SQLException ex) {
             Logger.getLogger(TicketDB.class.getName()).log(Level.SEVERE, null, ex);
         }
-        mySQL.Update("DELETE FROM `links` WHERE `from` = '"+userName+"';");
+        return toReturn;
+    }
+    
+    public User getUserByName(String name) {
+        User toReturn = null;
+        
+        try {
+            try (Connection connection = DriverManager.getConnection("jdbc:mysql://"+server+"/"+dbname, user, password);
+                    Statement statement = connection.createStatement();
+                    ResultSet resultSet = statement.executeQuery("SELECT * FROM `users` WHERE `name` = '"+name+"'")) {
+                
+                if (resultSet.next())
+                    if (resultSet.isLast()) {
+                        InetAddress address = null;
+                        try {
+                            address = InetAddress.getByName(resultSet.getString("address"));
+                        } catch (UnknownHostException ex) {
+                            Logger.getLogger(TicketDB.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        toReturn = new User(resultSet.getInt("id"),
+                                            address,
+                                            resultSet.getString("name"),
+                                            resultSet.getString("type"),
+                                            resultSet.getString("info"),
+                                            resultSet.getString("connections"),
+                                            resultSet.getString("ticket"),
+                                            resultSet.getString("authenticator"),
+                                            resultSet.getString("expire_time"),
+                                            resultSet.getBoolean("active"));
+                    }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(TicketDB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return toReturn;
+    }
+    
+    public int setAllData(int id, String address, String type, String info, String ticket, String expireTime) {
+        return mySQLupdate("UPDATE `ticket_engine`.`users` SET `address` = '"+address+"', `type` = '"+type+"',`ticket` = '"+ticket+"'," +
+            "`info` = '"+info+"', `expire_time` = '"+expireTime+"', `active` = true WHERE `users`.`id` = "+id+";");
+    }
+
+    public void cleanExpiredAuthenticators() {
+        mySQLupdate("DELETE FROM `users` WHERE `name` IS NULL AND `active` = false;");
+    }
+
+    public void webAddUser(String userName, String userInfo, String userType) {
+        mySQLupdate("INSERT INTO `updates` (`command`, `name`, `info`, `type`, `updatetime`) VALUES ('new',"
+                + " '"+userName+"', '"+userInfo+"', '"+userType+"',  NOW());");
+    }
+
+    public void webRemoveUser(String userName) {
+        mySQLupdate("INSERT INTO `updates` (`command`, `name`, `updatetime`) VALUES ('delete', '"+userName+"',  NOW());");
+    }
+
+    public void webRemoveLinkFrom(String userName) {
+        try {
+            try (Connection connection = DriverManager.getConnection("jdbc:mysql://"+server+"/"+dbname, user, password); Statement statement = connection.createStatement(); ResultSet resultSet = statement.executeQuery("SELECT * FROM `links` WHERE `from` ='"+userName+"';")) {
+                while (resultSet.next())
+                    mySQLupdate("INSERT INTO `updates` (`command`, `from`, `to`, `updatetime`) VALUES ('delete', '"+userName+"', '"+resultSet.getString("to")+"', NOW());");
+                mySQLupdate("DELETE FROM `links` WHERE `from` = '"+userName+"';");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(TicketDB.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     public void webAddLinkFrom(String from, String to) {
-        mySQL.Update("INSERT INTO `links` (`from`, `to`) VALUES ('"+from+"', '"+to+"');");
-        mySQL.Update("INSERT INTO `updates` (`command`, `from`, `to`, `updatetime`) VALUES ('new', '"+from+"', '"+to+"', NOW());");  
+        mySQLupdate("INSERT INTO `links` (`from`, `to`) VALUES ('"+from+"', '"+to+"');");
+        mySQLupdate("INSERT INTO `updates` (`command`, `from`, `to`, `updatetime`) VALUES ('new', '"+from+"', '"+to+"', NOW());");  
     }
     
     

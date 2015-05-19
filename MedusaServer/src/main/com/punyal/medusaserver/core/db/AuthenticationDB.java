@@ -17,17 +17,61 @@
 package com.punyal.medusaserver.core.db;
 
 import com.punyal.medusaserver.core.medusa.Status;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AuthenticationDB {
-    DBsql mySQL;
+    private final String server;
+    private final String dbname;
+    private final String user;
+    private final String password;
     
     public AuthenticationDB(Status status, String server, String dbname, String user, String password) {
-        mySQL = new DBsql(status, this.getClass().getSimpleName(), server, dbname, user, password);
+        status.addNewDBStatus(this.getClass().getSimpleName());
+        this.server = server;
+        this.dbname = dbname;
+        this.user = user;
+        this.password = password;
     }
     
     public String getPass4User(String userName) {
+        String toReturn = null;
+        
+        try {
+            try (Connection connection = DriverManager.getConnection("jdbc:mysql://"+server+"/"+dbname, user, password);
+                    Statement statement = connection.createStatement();
+                    ResultSet resultSet = statement.executeQuery("SELECT value FROM radcheck WHERE username=\"" + userName + "\" && attribute=\"Cleartext-Password\"")) {
+                if(resultSet.next())
+                    toReturn = resultSet.getString(1);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AuthenticationDB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return toReturn;
+        /*
+        
+        try {
+            Connection connection = DriverManager.getConnection("jdbc:mysql://"+server+"/"+dbname, user, password);
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(query);
+            System.out.println(resultSet);
+            statement.close();
+            connection.close();
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(DBsql.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return null;
+        
+        
+        
         ResultSet result = mySQL.Query("SELECT value FROM radcheck WHERE username=\"" + userName + "\" && attribute=\"Cleartext-Password\"");
         if(result != null) {
             try {
@@ -37,7 +81,7 @@ public class AuthenticationDB {
             }
         }
         // System.err.println("NO correct SQL pass response");
-        return null;
+        return null;*/
             
     }
 }
