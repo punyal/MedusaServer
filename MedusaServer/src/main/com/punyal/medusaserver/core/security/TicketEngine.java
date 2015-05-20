@@ -156,7 +156,7 @@ public class TicketEngine extends Thread{
         
         if (user != null) {
             JSONObject json = new JSONObject();
-            if (user.getUserType() == null || !user.isActive()) {
+            if (user.getUserType() == null || !user.isActive() || (user.getExpireTime() - (new Date()).getTime()) < 0) {
                 String expire = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(expireTime));
                 String ticket = UnitConversion.ByteArray2Hex(randomizer.generate8bytes());
                 userInfo = String.format(" <b>IP:</b> %s <br> <b>Supported Protocols:</b> %s <br> <b>Valid Time:</b> %s <br> <b>Info:</b> %s", address.toString().split("/")[1], userProtocol, expire , userInfo);
