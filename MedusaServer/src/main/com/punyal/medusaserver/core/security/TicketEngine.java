@@ -82,7 +82,7 @@ public class TicketEngine extends Thread{
             
             // Sleep 1ms to prevent synchronization errors it's possible to remove with other code :)
             try {
-                sleep(1);
+                sleep(100);
             } catch (InterruptedException ex) {
                 Logger.getLogger(TicketEngine.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -148,9 +148,7 @@ public class TicketEngine extends Thread{
     }
     
     public synchronized String createTicket4User(InetAddress address, String userName, long expireTime, String userType, String userInfo, String userProtocol) {
-        
         User user = ticketDB.getUserByName(userName);
-        
         if (!address.equals(user.getAddress()))
             System.out.println("Different IP address!!");
         

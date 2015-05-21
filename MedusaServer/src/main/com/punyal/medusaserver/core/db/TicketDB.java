@@ -246,6 +246,7 @@ public final class TicketDB {
                                             resultSet.getString("authenticator"),
                                             resultSet.getString("expire_time"),
                                             resultSet.getBoolean("active"));
+                        
                     }
             }
         } catch (SQLException ex) {

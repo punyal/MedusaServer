@@ -42,7 +42,7 @@ public class User{
         this.userType = userType;
         this.userInfo = userInfo;
         this.connections = connections;
-        this.ticket = UnitConversion.hexStringToByteArray(ticket);
+        this.ticket = (ticket!=null)?UnitConversion.hexStringToByteArray(ticket):null;
         this.authenticator = authenticator;
         this.active = active;
         SimpleDateFormat dFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
