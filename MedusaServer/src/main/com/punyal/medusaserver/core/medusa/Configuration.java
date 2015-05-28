@@ -18,6 +18,11 @@ package com.punyal.medusaserver.core.medusa;
 
 import static com.punyal.jrad.core.radius.RADIUS.DEFAULT_RADIUS_PORT;
 
+/**
+ * Configuration
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class Configuration {
     private Configuration() {} // Prevents initialization
     
@@ -40,7 +45,4 @@ public class Configuration {
     public static String MySQL_TICKET_USER_PASSWORD = "";
     public static String MySQL_TICKET_SERVER = "";
     public static String MySQL_TICKET_DBNAME = "";
-    
-    // CoAP Configuration
-    public static final int CoAP_TICKET_OPTION = 100;
 }
