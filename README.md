@@ -28,6 +28,13 @@
 <p><strong>Version Revision:</strong></p>
 
 <ul>
+	<li><u>0.2</u>
+
+	<ul>
+		<li>Adds visual web inteface to monitor the network status.</li>
+	</ul>
+	</li>
+	
 	<li><u>0.1</u>
 
 	<ul>
