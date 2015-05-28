@@ -34,13 +34,7 @@ public class Configuration {
     public static String MySQL_AUTHENTICATION_USER_PASSWORD = "";
     public static String MySQL_AUTHENTICATION_SERVER = "";
     public static String MySQL_AUTHENTICATION_DBNAME = "";
-    
-    // MySQL NETMONITOR Configuration
-    public static String MySQL_NETMONITOR_USER = "";
-    public static String MySQL_NETMONITOR_USER_PASSWORD = "";
-    public static String MySQL_NETMONITOR_SERVER = "";
-    public static String MySQL_NETMONITOR_DBNAME = "";
-    
+        
     // MySQL Ticket Configuration
     public static String MySQL_TICKET_USER = "";
     public static String MySQL_TICKET_USER_PASSWORD = "";
