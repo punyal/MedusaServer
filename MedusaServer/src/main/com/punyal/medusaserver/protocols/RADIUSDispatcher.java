@@ -22,9 +22,19 @@ import com.punyal.medusaserver.core.security.TicketEngine;
 import com.punyal.medusaserver.utils.Packetizer;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 
+/**
+ * RADIUSDispatcher
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class RADIUSDispatcher {
     private RADIUSDispatcher () {}
     
+    /**
+     * Dispatch an incoming Response
+     * @param resolution response from RADIUS Server
+     * @param ticketEngine Ticket engine
+     */
     public static void dispatchResponse(Packetizer resolution, TicketEngine ticketEngine) {
         Message radResponse = (Message)resolution.Response;
         switch(resolution.RequestProtocol) {

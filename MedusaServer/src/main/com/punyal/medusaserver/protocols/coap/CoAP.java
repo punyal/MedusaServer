@@ -33,23 +33,24 @@ import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
+/**
+ * CoAP
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class CoAP extends CoapServer {
     public static EventConstants.Priority PRIORITY = NORMAL;
+    private final EventSource mlistener = new EventSource();
+    private final GlobalVars globalVars;
     
-    private EventSource mlistener = new EventSource();
-    
-    private GlobalVars globalVars;
-    
+    /**
+     * Add new Listener
+     * @param listener to add 
+     */
     public void addListener(EventMessage listener) {
         mlistener.addEventListener(listener);
     }
     
-    
-    
-    /*
-     * Constructor for a new Hello-World server. Here, the resources
-     * of the server are initialized.
-     */
     public CoAP(GlobalVars globalVars) throws SocketException {
         // provide an instance of a Authentication resource
         this.globalVars = globalVars;
@@ -58,25 +59,19 @@ public class CoAP extends CoapServer {
         Logger.getLogger(CoapServer.class.getCanonicalName()).setLevel(Level.OFF);
         Logger.getLogger("org.eclipse.californium.core.network.CoAPEndpoint").setLevel(Level.OFF);
         Logger.getLogger("org.eclipse.californium.core.network.Matcher").setLevel(Level.OFF);
-        
-        
         addListener(this.globalVars.getHandler().getEventListener());
         this.globalVars.getHandler().setProtocolAdaptor(this);
         this.globalVars.getStatus().addNewProtocolStatus(this.getClass().getSimpleName());
         start();
     }
     
-    /*
-     * Definition of the Authentication Resource
+    /**
+     * Authentication Resource
      */
     class CoAP_Authentication_Resource extends MedusaCoapResource {
         
         public CoAP_Authentication_Resource() {
-            
-            // set resource identifier
             super(globalVars, "Authentication",true);
-            
-            // set display name
             getAttributes().setTitle("Authentication Resource");
         }
         
@@ -90,7 +85,6 @@ public class CoAP extends CoapServer {
                     "CoAP_Authentication GET :: " + exchange.getRequestText(),
                     "CoAP Server",
                     exchange);
-            
             mlistener.newEvent(newEvt);
         }
         
@@ -104,23 +98,17 @@ public class CoAP extends CoapServer {
                     "CoAP_Authentication PUT :: " + exchange.getRequestText(),
                     "CoAP Server",
                     exchange);
-            
             mlistener.newEvent(newEvt);
         }
     }
     
-    
     /*
-     * Definition of the Validation Resource
+     * Validation Resource
      */
     class CoAP_Validation_Resource extends MedusaCoapResource {
         
         public CoAP_Validation_Resource() {
-            
-            // set resource identifier
             super(globalVars, "Validation",true);
-            
-            // set display name
             getAttributes().setTitle("Validation Resource");
         }
                 
@@ -130,30 +118,16 @@ public class CoAP extends CoapServer {
             JSONObject json = (JSONObject) JSONValue.parse(exchange.getRequestText());
             String providerTicket = json.get(JSON_MY_TICKET).toString();
             String consumerTicket = json.get(JSON_TICKET).toString();
-            
-            /*
-            Ticket ticketProvider = globalVars.getTicketEngine().getTicket(providerTicket);
-            Ticket ticketConsumer = globalVars.getTicketEngine().getTicket(consumerTicket);
-            */
-            
-            //System.out.print("Validation: "+providerTicket+" and "+consumerTicket);
             User provider = globalVars.getTicketDB().getUserByTicket(providerTicket);
             User consumer = globalVars.getTicketDB().getUserByTicket(consumerTicket);
-            
-            
             if (provider == null) {
-                //System.out.println("Invalid Ticket Provider");
                 exchange.respond("Invalid Ticket");
                 return;
             }
-            
             if (consumer == null) {
-                //System.out.println("Invalid Ticket Consumer");
                 exchange.respond("Invalid Ticket");
                 return;
             }
-            
-            //System.out.println("Validation OK!");
             json.clear();
             try {
                 json.put(JSON_TIME_TO_EXPIRE, consumer.getExpireTime()- (new Date()).getTime());
@@ -163,17 +137,8 @@ public class CoAP extends CoapServer {
                 System.err.println("Null pointer info: "+e);
             }
             exchange.respond(json.toString());
-            
-            
-            //updates for web interface
+            // updates for web interface
             globalVars.getTicketDB().webAddLinkFrom(consumer.getUserName(), provider.getUserName());
-                        
-            //String providerName = provider.getUserName();
-            //ticketConsumer.addConnection(providerName);
-            //globalVars.getNetDB().addLink(consumer.getUserName(), provider.getUserName());
-            
-            
-            
         }
     }
 }

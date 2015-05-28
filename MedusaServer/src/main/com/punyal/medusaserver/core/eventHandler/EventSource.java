@@ -18,6 +18,11 @@ package com.punyal.medusaserver.core.eventHandler;
 
 import javax.swing.event.EventListenerList;
 
+/**
+ * EventSource
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class EventSource {
     protected EventListenerList listenerList = new EventListenerList();
     

@@ -18,6 +18,11 @@ package com.punyal.medusaserver.utils;
 
 import com.punyal.medusaserver.core.eventHandler.EventConstants.Protocol;
 
+/**
+ * Packetizer
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class Packetizer {
     public Object Request;
     public Protocol RequestProtocol;

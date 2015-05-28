@@ -23,6 +23,11 @@ import java.text.SimpleDateFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * User
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class User{
     private final int id;
     private final InetAddress address;
@@ -56,39 +61,74 @@ public class User{
         this.expireTime = date;
     }
     
+    /**
+     * ID Getter
+     * @return ID
+     */
     public int getId() {
         return id;
     }
     
+    /**
+     * IP Address Getter
+     * @return IP Address
+     */
     public InetAddress getAddress() {
         return address;
     }
     
+    /**
+     * User Name Getter
+     * @return User Name
+     */
     public String getUserName() {
         return userName;
     }
-        
+    
+    /**
+     * User Type Getter
+     * @return User Type
+     */
     public String getUserType() {
         return userType;
     }
     
-    
+    /**
+     * User Info Getter
+     * @return User Info
+     */
     public String getUserInfo() {
         return userInfo;
     }
     
+    /**
+     * Ticket Getter
+     * @return Ticket
+     */
     public byte[] getTicket() {
         return ticket;
     }
     
+    /**
+     * Authenticator Getter
+     * @return Authenticator
+     */
     public String getAuthenticator() {
         return authenticator;
     }
-        
+    
+    /**
+     * Expire Time Getter
+     * @return Expire Time
+     */
     public long getExpireTime() {
         return expireTime;
     }
     
+    /**
+     * Check if it is Active
+     * @return true/false
+     */
     public boolean isActive() {
         return active;
     }

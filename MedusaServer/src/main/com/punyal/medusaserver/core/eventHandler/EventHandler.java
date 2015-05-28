@@ -29,56 +29,47 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 
+
+/**
+ * EventHandler
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class EventHandler extends Thread {
     private static final Logger LOGGER = Logger.getLogger(EventHandler.class.getCanonicalName());
     private boolean running;
     private final EventMessage globalEvent;
     private final TicketEngine ticketEngine;
-    private Status status;
-    
+    private final Status status;
     private List<EventMedusa> messageQueue;
-    
     private RADIUS radiusClient;
     private CoAP coapServer;
     
-    
-    
-    /**
-     * Constructor to set the dispatcher
-     * @param ticketEngine
-     */
     public EventHandler(GlobalVars globalVars) {
         running = false;
         status = globalVars.getStatus();
         ticketEngine = globalVars.getTicketEngine();
-        
         this.globalEvent = new EventMessage() {
             @Override
             public void fireEvent(EventMedusa evt) {
-                synchronized(this){
+                synchronized(EventHandler.this){
                     try {
                         messageQueue.add(evt);
                     }catch(NullPointerException e) {
-                        LOGGER.log(Level.WARNING, "Exception "+e);
+                        LOGGER.log(Level.WARNING, "Exception {0}", e);
                     }
                     
                 }
             }
         };
     }
-
+    
     @Override
     public void run() {
-        //System.out.println("Event Handler running...");
         running = true;
         Logger.getLogger(EventHandler.class.getCanonicalName()).setLevel(Level.ALL);
         LOGGER.log(Level.INFO, "Thread [{0}] running", EventHandler.class.getSimpleName());
-        /**
-         * Initialization of all subsystems
-         */
         ticketEngine.start();
-        //reporter = new Reporter(ticketEngine.getTicketList());
-        //reporter.start();
         messageQueue = new ArrayList<>();
         
         while(running) {
@@ -111,22 +102,24 @@ public class EventHandler extends Thread {
         LOGGER.log(Level.WARNING, "Thread [{0}] dying", EventHandler.class.getSimpleName());
     }
     
+    /**
+     * Method to ShutDown the Handler Engine
+     */
     public void ShutDown() {
         this.running = false;
         ticketEngine.ShutDown();
     }
     
     /**
-     * Get Event Listener
+     * Event Listener Getter
      * @return a listener
      */
     public EventMessage getEventListener() {
         return globalEvent;
     }
     
-    
     /**
-     * Set Protocol Adaptor
+     * Protocol Adaptor Setter
      * @param adaptor of each protocol
      */
     public void setProtocolAdaptor(Object adaptor) {

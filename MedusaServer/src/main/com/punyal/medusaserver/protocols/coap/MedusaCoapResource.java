@@ -22,9 +22,14 @@ import org.eclipse.californium.core.CoapResource;
 import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 
+/**
+ * MedusaCoapResource
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class MedusaCoapResource extends CoapResource{
     private final boolean publicResource;
-    private GlobalVars globalVars;
+    private final GlobalVars globalVars;
     
     public MedusaCoapResource(GlobalVars globalVars, String name, boolean publicResource) {
         super(name);
@@ -45,7 +50,6 @@ public class MedusaCoapResource extends CoapResource{
             medusaHandleGET(exchange);
             return;
         }
-        
         // NOT PUBLIC RESOURCE
         try {
             if (globalVars.getTicketDB().getUserByTicket(UnitConversion.ByteArray2Hex(UnitConversion.getTicketFromCoapExchange(exchange))) != null) {
@@ -111,15 +115,34 @@ public class MedusaCoapResource extends CoapResource{
         exchange.respond(CoAP.ResponseCode.METHOD_NOT_ALLOWED);
     }
     
+    /**
+     * Medusa CoAP GET Handler
+     * @param exchange CoAP exchange
+     */
     public void medusaHandleGET(CoapExchange exchange) {
         exchange.respond(CoAP.ResponseCode.METHOD_NOT_ALLOWED);
     }
+    
+    /**
+     * Medusa CoAP POST Handler
+     * @param exchange CoAP exchange
+     */
     public void medusaHandlePOST(CoapExchange exchange) {
         exchange.respond(CoAP.ResponseCode.METHOD_NOT_ALLOWED);
     }
+    
+    /**
+     * Medusa CoAP PUT Handler
+     * @param exchange CoAP exchange
+     */
     public void medusaHandlePUT(CoapExchange exchange) {
         exchange.respond(CoAP.ResponseCode.METHOD_NOT_ALLOWED);
     }
+    
+    /**
+     * Medusa CoAP DELETE Handler
+     * @param exchange CoAP exchange
+     */
     public void medusaHandleDELETE(CoapExchange exchange) {
         exchange.respond(CoAP.ResponseCode.METHOD_NOT_ALLOWED);
     }

@@ -16,7 +16,7 @@
  ******************************************************************************/
 package com.punyal.medusaserver.utils;
 
-import static com.punyal.medusaserver.core.medusa.Configuration.CoAP_TICKET_OPTION;
+import static com.punyal.medusaserver.core.medusa.MedusaConstants.CoAP_TICKET_OPTION;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;

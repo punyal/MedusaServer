@@ -16,22 +16,25 @@
  ******************************************************************************/
 package com.punyal.medusaserver.core.eventHandler;
 
+/**
+ * EventConstants
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class EventConstants {
-    private EventConstants () {
-        // prevent initialization
-    }
+    private EventConstants () {}
     
+    /**
+     * Event Protocol
+     */
     public enum Protocol {
         RADIUS (0),
         CoAP   (1),
         REST   (2);
-        
         public final int value;
-        
         Protocol(int value) {
             this.value = value;
         }
-        
         public static Protocol valueOf(int value) {
             switch(value) {
                 case 0: return RADIUS;
@@ -41,19 +44,19 @@ public class EventConstants {
             }
         }
     }
-        
+    
+    /**
+     * Event Priority
+     */
     public enum Priority {
         CRITICAL  (0),
         HIGH      (1),
         NORMAL    (2),
         LOW       (3);
-        
         public final int value;
-        
         Priority(int value) {
             this.value = value;
         }
-        
         public static Priority valueOf(int value) {
             switch(value) {
                 case 0: return CRITICAL;
@@ -65,20 +68,19 @@ public class EventConstants {
         }
     }
     
+    /**
+     * Event Type
+     */
     public enum Type {
         UNKNOWN   (1),
         ERROR     (2),
         WARNING   (3),
         DEBUG     (4),
         NORMAL    (5);
-        
-        /* Type value */
         public final int value;
-        
         Type(int value) {
             this.value = value;
         }
-        
         public static Type valueOf(int value) {
             switch(value) {
                 case 1: return UNKNOWN;
@@ -90,5 +92,4 @@ public class EventConstants {
             }
         }
     }
-    
 }

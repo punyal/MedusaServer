@@ -23,6 +23,11 @@ import static com.punyal.medusaserver.core.medusa.Configuration.*;
 import com.punyal.medusaserver.core.medusa.Status;
 import com.punyal.medusaserver.core.security.TicketEngine;
 
+/**
+ * GlobalVars
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class GlobalVars {
     private final TicketEngine ticketEngine;
     private final EventHandler evtHandler;
@@ -39,22 +44,42 @@ public class GlobalVars {
         evtHandler.start();
     }
     
+    /**
+     * TicketEngine Getter
+     * @return Ticket Engine
+     */
     public synchronized TicketEngine getTicketEngine() {
         return ticketEngine;
     }
     
+    /**
+     * Main Event Handler Getter
+     * @return Event Handler
+     */
     public synchronized EventHandler getHandler() {
         return evtHandler;
     }
     
+    /**
+     * Server Status Getter
+     * @return Server Status
+     */
     public synchronized Status getStatus() {
         return status;
     }
     
+    /**
+     * Authentication Data Base Getter
+     * @return Authentication DB methods
+     */
     public synchronized AuthenticationDB getAuthDB() {
         return authDB;
     }
-        
+    
+    /**
+     * Ticket Data Base Getter
+     * @return Ticket DB methods
+     */  
     public synchronized TicketDB getTicketDB() {
         return ticketDB;
     }

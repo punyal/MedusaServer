@@ -33,6 +33,11 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * TicketDB
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public final class TicketDB {
     private final String server;
     private final String dbname;
@@ -48,6 +53,11 @@ public final class TicketDB {
         this.resetDB();
     }
     
+    /**
+     * Method to do MySQL Updates
+     * @param sql request
+     * @return true/false
+     */
     private int mySQLupdate(String sql) {
         int toReturn = 0;
         try {
@@ -61,11 +71,20 @@ public final class TicketDB {
         return toReturn;
     }
     
+    /**
+     * Remove all the previous data
+     */
     public void resetDB() {
         mySQLupdate("truncate table `updates`");
         mySQLupdate("INSERT INTO `ticket_engine`.`updates` (`command`, `updatetime`) VALUES ('refresh', NOW());");
     }
     
+    /**
+     * Add a new Authenticator to the DB
+     * @param address of the client
+     * @param authenticator of the client
+     * @return String of the new authenticator
+     */
     public String newAuthenticator(InetAddress address, String authenticator) {
         String expireTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date((new Date()).getTime() + (AUTHENTICATION_CODE_TIMEOUT)));
         if (mySQLupdate("INSERT INTO `ticket_engine`.`users` (`address`, `authenticator`,  `expire_time`) VALUES ('"+address.toString().split("/")[1]+"', '"+authenticator+"',  '"+expireTime+"');") == 1)
@@ -73,12 +92,14 @@ public final class TicketDB {
         return null;
     }
     
+    /**
+     * Remove all expired Tickets and Authenticators
+     */
     public void removeExpired() {        
         try {
             try (Connection connection = DriverManager.getConnection("jdbc:mysql://"+server+"/"+dbname, user, password);
                     Statement statement = connection.createStatement();
                     ResultSet resultSet = statement.executeQuery("SELECT * FROM `users` WHERE `active` = true AND `expire_time` < NOW();")) {
-                
                 while (resultSet.next()) {
                     this.deactivate(resultSet.getInt("id"));
                     if (resultSet.getString("name") != null) { // check if it's an user or a temp authenticator code
@@ -87,38 +108,25 @@ public final class TicketDB {
                     }
                 }
                 this.cleanExpiredAuthenticators();
-                
             }
         } catch (SQLException ex) {
             Logger.getLogger(TicketDB.class.getName()).log(Level.SEVERE, null, ex);
         }
-         /*
-            try {
-                user = ticketDB.getExpired();
-                if (user != null) {
-                    ticketDB.deactivate(user.i);
-                        while (result.next()) {
-                            //System.out.println("Expired: "+result.getString("id"));
-                            ticketDB.deactivate(result.getString("id"));
-                            if (result.getString("name") != null) {
-                                ticketDB.webRemoveUser(result.getString("name"));
-                                ticketDB.webRemoveLinkFrom(result.getString("name"));
-                            }
-                                
-                        }
-                    ticketDB.cleanExpiredAuthenticators();
-                }
-            } catch (SQLException ex) {
-                Logger.getLogger(TicketEngine.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            */
-        //return mySQL.Query("SELECT * FROM `users` WHERE `active` = true AND `expire_time` < NOW();");
     }
     
+    /**
+     * Deactivate an user by ID
+     * @param id of the client
+     */
     public void deactivate(int id) {
         mySQLupdate("UPDATE  `ticket_engine`.`users` SET  `active` =  '0' WHERE  `users`.`id` ="+id+";");
     }
     
+    /**
+     * Check if a specific user is already on the DB
+     * @param userName
+     * @return true/false
+     */
     private boolean checkIfExist(String userName) {
         try {
             Connection connection = DriverManager.getConnection("jdbc:mysql://"+server+"/"+dbname, user, password);
@@ -132,6 +140,14 @@ public final class TicketDB {
         return false;
     }
     
+    /**
+     * Check if a Password is valid
+     * @param address of the client
+     * @param userName of the client
+     * @param decodedPass of the client
+     * @param cryptedPass of the client
+     * @return true/false
+     */
     public boolean checkPass(InetAddress address, String userName, String decodedPass, String cryptedPass) {
         boolean toReturn = false;
         try {
@@ -147,25 +163,33 @@ public final class TicketDB {
                     }
                 }
             }
-            
         } catch (SQLException ex) {
             Logger.getLogger(TicketDB.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
         return toReturn;
     }
     
+    /**
+     * Set The userName by ID
+     * @param id of the client
+     * @param userName of the client
+     */
     public void setUserNameByID(int id, String userName) {
         mySQLupdate("UPDATE `ticket_engine`.`users` SET `name` = '"+userName+"' WHERE `users`.`id` = "+id+";");
     }
         
+    /**
+     * Get the user info from the address and userName
+     * @param address of the client
+     * @param userName of the client
+     * @return user info
+     */
     public User getUser(InetAddress address, String userName) {
         User toReturn = null;
         try {
             try (Connection connection = DriverManager.getConnection("jdbc:mysql://"+server+"/"+dbname, user, password);
                     Statement statement = connection.createStatement();
                     ResultSet resultSet = statement.executeQuery("SELECT * FROM `users` WHERE `address` = '"+address.toString().split("/")[1]+"' AND `name` = '"+userName+"'")) {
-                
                 if (resultSet.next())
                     if (resultSet.isLast())
                         toReturn = new User(resultSet.getInt("id"),
@@ -179,21 +203,23 @@ public final class TicketDB {
                                             resultSet.getString("expire_time"),
                                             resultSet.getBoolean("active"));
             }
-        
         } catch (SQLException ex) {
             Logger.getLogger(TicketDB.class.getName()).log(Level.SEVERE, null, ex);
         }
         return toReturn;
     }
     
+    /**
+     * Get user info from Ticket
+     * @param ticket of the client
+     * @return user info
+     */
     public User getUserByTicket(String ticket) {
         User toReturn = null;
-        
         try {
             try (Connection connection = DriverManager.getConnection("jdbc:mysql://"+server+"/"+dbname, user, password);
                     Statement statement = connection.createStatement();
-                    ResultSet resultSet = statement.executeQuery("SELECT * FROM `users` WHERE `ticket` = '"+ticket+"' AND `active` = true")) {
-                
+                    ResultSet resultSet = statement.executeQuery("SELECT * FROM `users` WHERE `ticket` = '"+ticket+"' AND `active` = true")) {   
                 if (resultSet.next())
                     if (resultSet.isLast()) {
                         InetAddress address = null;
@@ -220,9 +246,13 @@ public final class TicketDB {
         return toReturn;
     }
     
+    /**
+     * Get user info from userName
+     * @param name of the client
+     * @return user info
+     */
     public User getUserByName(String name) {
         User toReturn = null;
-        
         try {
             try (Connection connection = DriverManager.getConnection("jdbc:mysql://"+server+"/"+dbname, user, password);
                     Statement statement = connection.createStatement();
@@ -255,24 +285,61 @@ public final class TicketDB {
         return toReturn;
     }
     
+    /**
+     * Set all user info on the DB
+     * @param id of the client
+     * @param address of the client
+     * @param type of the client
+     * @param info of the client
+     * @param ticket of the client 
+     * @param expireTime of the client
+     * @return mysql error code
+     */
     public int setAllData(int id, String address, String type, String info, String ticket, String expireTime) {
         return mySQLupdate("UPDATE `ticket_engine`.`users` SET `address` = '"+address+"', `type` = '"+type+"',`ticket` = '"+ticket+"'," +
             "`info` = '"+info+"', `expire_time` = '"+expireTime+"', `active` = true WHERE `users`.`id` = "+id+";");
     }
-
+    
+    /**
+     * Clean expired Authenticator from the DB
+     */
     public void cleanExpiredAuthenticators() {
         mySQLupdate("DELETE FROM `users` WHERE `name` IS NULL AND `active` = false;");
     }
-
+    
+    /**
+     * Add User to the web interface
+     * @param userName of the client
+     * @param userInfo of the client
+     * @param userType  of the client
+     */
     public void webAddUser(String userName, String userInfo, String userType) {
         mySQLupdate("INSERT INTO `updates` (`command`, `name`, `info`, `type`, `updatetime`) VALUES ('new',"
                 + " '"+userName+"', '"+userInfo+"', '"+userType+"',  NOW());");
     }
-
+    
+    /**
+     * Remove User from the web interface
+     * @param userName  of the client
+     */
     public void webRemoveUser(String userName) {
         mySQLupdate("INSERT INTO `updates` (`command`, `name`, `updatetime`) VALUES ('delete', '"+userName+"',  NOW());");
     }
-
+    
+    /**
+     * Add link from an specific user to other
+     * @param from client's name
+     * @param to other client's name
+     */
+    public void webAddLinkFrom(String from, String to) {
+        mySQLupdate("INSERT INTO `links` (`from`, `to`) VALUES ('"+from+"', '"+to+"');");
+        mySQLupdate("INSERT INTO `updates` (`command`, `from`, `to`, `updatetime`) VALUES ('new', '"+from+"', '"+to+"', NOW());");  
+    }
+    
+    /**
+     * Remove links form an specific user
+     * @param userName of the client
+     */
     public void webRemoveLinkFrom(String userName) {
         try {
             try (Connection connection = DriverManager.getConnection("jdbc:mysql://"+server+"/"+dbname, user, password); Statement statement = connection.createStatement(); ResultSet resultSet = statement.executeQuery("SELECT * FROM `links` WHERE `from` ='"+userName+"';")) {
@@ -283,18 +350,5 @@ public final class TicketDB {
         } catch (SQLException ex) {
             Logger.getLogger(TicketDB.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-    
-    public void webAddLinkFrom(String from, String to) {
-        mySQLupdate("INSERT INTO `links` (`from`, `to`) VALUES ('"+from+"', '"+to+"');");
-        mySQLupdate("INSERT INTO `updates` (`command`, `from`, `to`, `updatetime`) VALUES ('new', '"+from+"', '"+to+"', NOW());");  
-    }
-    
-    
-    
-    
-    
-    
-    
-    
+    }    
 }

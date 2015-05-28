@@ -25,6 +25,11 @@ import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * AuthenticationDB
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class AuthenticationDB {
     private final String server;
     private final String dbname;
@@ -39,6 +44,11 @@ public class AuthenticationDB {
         this.password = password;
     }
     
+    /**
+     * Helper Method to get the password of an user from Freeradius Data Base
+     * @param userName of the client
+     * @return String of password
+     */
     public String getPass4User(String userName) {
         String toReturn = null;
         
@@ -52,36 +62,6 @@ public class AuthenticationDB {
         } catch (SQLException ex) {
             Logger.getLogger(AuthenticationDB.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
         return toReturn;
-        /*
-        
-        try {
-            Connection connection = DriverManager.getConnection("jdbc:mysql://"+server+"/"+dbname, user, password);
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(query);
-            System.out.println(resultSet);
-            statement.close();
-            connection.close();
-            
-        } catch (SQLException ex) {
-            Logger.getLogger(DBsql.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        return null;
-        
-        
-        
-        ResultSet result = mySQL.Query("SELECT value FROM radcheck WHERE username=\"" + userName + "\" && attribute=\"Cleartext-Password\"");
-        if(result != null) {
-            try {
-                if(result.next())
-                    return result.getString(1);
-            } catch (SQLException ex) {
-            }
-        }
-        // System.err.println("NO correct SQL pass response");
-        return null;*/
-            
     }
 }

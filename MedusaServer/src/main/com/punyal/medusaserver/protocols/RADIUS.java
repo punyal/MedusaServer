@@ -21,6 +21,11 @@ import static com.punyal.jrad.core.radius.RADIUS.DEFAULT_RADIUS_PORT;
 import com.punyal.medusaserver.core.eventHandler.EventConstants.Priority;
 import static com.punyal.medusaserver.core.eventHandler.EventConstants.Priority.HIGH;
 
+/**
+ * RADIUS
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class RADIUS extends JRaDclient {
     public static Priority PRIORITY = HIGH;
     public static int DEFAULT_PORT = DEFAULT_RADIUS_PORT;

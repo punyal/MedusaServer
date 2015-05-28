@@ -18,23 +18,19 @@ package com.punyal.medusaserver.core.eventHandler;
 
 import com.punyal.medusaserver.core.eventHandler.EventConstants.*;
 import java.util.EventObject;
-import org.eclipse.californium.core.server.resources.CoapExchange;
 
+/**
+ * EventMedusa
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class EventMedusa extends EventObject {
-    // extended parameters
-    private Priority priority; // priority of events for event dispatcher
+    private Priority priority;
     private Type type;
     private Protocol protocol;
     private String message;
     private String messageTittle;
     
-    /**
-     * Constructor of EventMedusa
-     * @param priority to attend the event
-     * @param protocol source of event
-     * @param type of the message
-     * @param source the source of the event
-     */
     public EventMedusa(Priority priority, Protocol protocol, Type type, Object source) {
         super(source);
         this.priority = priority;
@@ -42,15 +38,6 @@ public class EventMedusa extends EventObject {
         this.type = type;
     }
     
-    /**
-     * Constructor of EventMedusa
-     * @param priority to attend the event
-     * @param protocol source of event
-     * @param type of the message
-     * @param message text of event to show
-     * @param title title of event to show
-     * @param source the source of the event
-     */
     public EventMedusa(Priority priority, Protocol protocol, Type type, String message,
             String title, Object source) {
         super(source);
@@ -62,7 +49,7 @@ public class EventMedusa extends EventObject {
     }
     
     /**
-     * Set Event Type
+     * Event Type Setter
      * @param type of event
      */
     public void setType(Type type) {
@@ -70,7 +57,7 @@ public class EventMedusa extends EventObject {
     }
     
     /**
-     * Get Event Type
+     * Event Type Getter
      * @return type of event
      */
     public Type getType() {
@@ -78,7 +65,7 @@ public class EventMedusa extends EventObject {
     }
     
     /**
-     * Set Event priority
+     * Event Priority Setter
      * @param priority of event
      */
     public void setPriotity(Priority priority) {
@@ -86,7 +73,7 @@ public class EventMedusa extends EventObject {
     }
     
     /**
-     * Get Event priority
+     * Event Priority Getter
      * @return priority of event
      */
     public Priority getPriority() {
@@ -94,7 +81,7 @@ public class EventMedusa extends EventObject {
     }
     
     /**
-     * Set Protocol source
+     * Protocol Setter
      * @param protocol source
      */
     public void setProtocol(Protocol protocol) {
@@ -102,7 +89,7 @@ public class EventMedusa extends EventObject {
     }
     
     /**
-     * Get Protocol source
+     * Protocol Getter
      * @return protocol source
      */
     public Protocol getProtocol() {
@@ -110,7 +97,7 @@ public class EventMedusa extends EventObject {
     }
     
     /**
-     * Set Message of Event
+     * Message Setter
      * @param message to show 
      */
     public void setMessage(String message) {
@@ -118,7 +105,7 @@ public class EventMedusa extends EventObject {
     }
     
     /**
-     * Get Message of Event
+     * Message Getter
      * @return message
      */
     public String getMessage() {
@@ -126,7 +113,7 @@ public class EventMedusa extends EventObject {
     }
     
     /**
-     * Set Message Title of Event
+     * Message Title Setter
      * @param title to show
      */
     public void setTitle(String title) {
@@ -134,7 +121,7 @@ public class EventMedusa extends EventObject {
     }
     
     /**
-     * Get Message Title of Event
+     * Message Title Getter
      * @return title text
      */
     public String getTitle() {

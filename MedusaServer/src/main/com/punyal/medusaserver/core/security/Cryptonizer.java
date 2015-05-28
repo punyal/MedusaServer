@@ -20,10 +20,22 @@ import com.punyal.medusaserver.utils.UnitConversion;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+/**
+ * Cryptonizer
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class Cryptonizer {
-    // prevent inizialization
+    
     public void Cryptonizer(){}
     
+    /**
+     * Method to encrypt passwords on RADIUS protocol
+     * @param secretKey to use on the encryption
+     * @param authenticator to use on the encryption
+     * @param passWord to encrypt
+     * @return encrypted password
+     */
     public static String encrypt(String secretKey, String authenticator, String passWord) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
@@ -36,6 +48,7 @@ public class Cryptonizer {
             
             int len = 0;
             int tot_len = 0;
+            
             // Check final length to prevent errors
             if(b_password.length%16 != 0) tot_len = 16;
             tot_len += ((int)b_password.length/16)*16;
@@ -71,6 +84,13 @@ public class Cryptonizer {
         return null;
     }
     
+    /**
+     * Method to encrypt passwords optimized for CoAP clients using hex strings
+     * @param secretKey to use on encryption
+     * @param authenticator to use on encryption
+     * @param passWord to encrypt
+     * @return encrypted password
+     */
     public static String encryptCoAP(String secretKey, String authenticator, String passWord) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
@@ -116,6 +136,5 @@ public class Cryptonizer {
             System.err.println("No Such Arlgorithm Exception "+ ex);
         }
         return null;
-        
     }
 }

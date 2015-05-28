@@ -19,10 +19,18 @@ package com.punyal.medusaserver.logger;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * Log
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class Log {
-    
     private Log() {}
     
+    /**
+     * Log normal info
+     * @param text to log
+     */
     public static void normal(String text) {
         System.out.println(
                 (new SimpleDateFormat("MM/dd/yyyy h:mm:ss a ")).format(new Date()) + text);

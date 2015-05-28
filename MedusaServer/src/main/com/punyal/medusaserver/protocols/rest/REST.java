@@ -18,7 +18,11 @@ package com.punyal.medusaserver.protocols.rest;
 
 import com.punyal.medusaserver.core.GlobalVars;
 
-
+/**
+ * REST
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class REST {
     private GlobalVars globalVars;
     

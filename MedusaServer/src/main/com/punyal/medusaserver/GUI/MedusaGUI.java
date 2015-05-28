@@ -17,7 +17,9 @@
 package com.punyal.medusaserver.GUI;
 
 /**
- * Optional GUI to show communications.
+ * MedusaGUI - TODO
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
  */
 public class MedusaGUI {
     public void MedusaGUI(){

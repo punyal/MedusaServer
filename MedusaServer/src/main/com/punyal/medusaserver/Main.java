@@ -18,9 +18,10 @@ package com.punyal.medusaserver;
 
 import com.punyal.medusaserver.core.MedusaServer;
 
-
 /**
- * Medusa Server Main Class
+ * Main Class
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
  */
 public class Main {
     public static void main(String[] args) {

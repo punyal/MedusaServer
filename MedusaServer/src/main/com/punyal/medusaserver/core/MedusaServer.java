@@ -24,23 +24,23 @@ import java.net.SocketException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * MedusaServer
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class MedusaServer {
     private static final Logger LOGGER = Logger.getLogger(MedusaServer.class.getCanonicalName());
     private GlobalVars globalVars;
-    private CoAP coapServer;     // CoAP Server
+    private CoAP coapServer;
     private REST restServer;
     
-    /**
-     * Constructor
-     */
     public MedusaServer() {
         Logger.getLogger(MedusaServer.class.getCanonicalName()).setLevel(Level.ALL);
-        
         LOGGER.log(Level.INFO, String.format("Medusa Server %d.%d", version, subVersion));
-        
         globalVars = new GlobalVars();
         
-        // Start Protocols and Report Status
+        // CoAP Server
         try {
             coapServer = new CoAP(globalVars);
             
@@ -48,20 +48,21 @@ public class MedusaServer {
             System.err.println("Failed to initialize server: " + e.getMessage());
             globalVars.getStatus().setProtocolStatus("CoAP", false);
         }
-        
+        // REST Server
         restServer = new REST(globalVars);
         
-        
+        // Wait and check the Status
         try {
             sleep(2000);
         } catch (InterruptedException ex) {
             Logger.getLogger(MedusaServer.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
         System.out.print(globalVars.getStatus().toString());
-        
-        
     }
+    
+    /**
+     * ShutDown Method
+     */
     private void ShutDown() {
         System.out.println("Shutting down Medusa Server"); // Print Reason of ShuttingDown
         coapServer.stop();

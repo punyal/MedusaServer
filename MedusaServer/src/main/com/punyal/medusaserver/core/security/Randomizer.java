@@ -18,22 +18,34 @@ package com.punyal.medusaserver.core.security;
 
 import java.security.SecureRandom;
 
+/**
+ * Randomizer
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class Randomizer {
     SecureRandom random;
     public Randomizer() {
         random = new SecureRandom();
     }
     
+    /**
+     * Generate random 16 bytes array
+     * @return random 16 bytes array
+     */
     public byte[] generate16bytes() {
         byte bytes[] = new byte[16];
         random.nextBytes(bytes);
         return bytes;
     }
     
+    /**
+     * Generate random 8 bytes array
+     * @return random 8 bytes array
+     */
     public byte[] generate8bytes() {
         byte bytes[] = new byte[8];
         random.nextBytes(bytes);
         return bytes;
     }
-    
 }

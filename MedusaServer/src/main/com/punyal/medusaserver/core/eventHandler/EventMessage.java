@@ -18,9 +18,12 @@ package com.punyal.medusaserver.core.eventHandler;
 
 import java.util.EventListener;
 
-
+/**
+ * Event Message
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public interface EventMessage extends EventListener {
-    
     /**
      * Method to execute when an event appear
      * @param evt info of the event

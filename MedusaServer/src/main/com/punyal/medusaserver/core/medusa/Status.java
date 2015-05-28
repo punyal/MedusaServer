@@ -18,6 +18,11 @@ package com.punyal.medusaserver.core.medusa;
 
 import java.util.ArrayList;
 
+/**
+ * Status
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class Status {
     private final ArrayList<Protocol> protocolList;
     private final ArrayList<DataBase> dbList;
@@ -30,26 +35,21 @@ public class Status {
     @Override
     public String toString() {
         String toPrint = "\n\n====[Medusa Server Status]====\n";
-        
         toPrint += " Version: "+MedusaConstants.version+"."+MedusaConstants.subVersion+"\n";
-        
-        
         // DataBases status:
         toPrint += "\n -.DataBases.-\n";
-        for (int i=0; i<dbList.size(); i++) {
-            toPrint += " "+dbList.get(i).getName()+ " - "+(dbList.get(i).getStatus()?"Connected":"Disconnected")+"\n";
-        }
-        
+        toPrint = dbList.stream().map((dbList1) -> " " + dbList1.getName() + " - " + (dbList1.getStatus() ? "Connected" : "Disconnected") + "\n").reduce(toPrint, String::concat);
         // Protocol status:
         toPrint += "\n -.Protocols.-\n";
-        for (int i=0; i<protocolList.size(); i++) {
-            toPrint += " "+protocolList.get(i).getName()+ " - "+(protocolList.get(i).getStatus()?"ON":"OFF")+"\n";
-        }
-        
+        toPrint = protocolList.stream().map((protocolList1) -> " " + protocolList1.getName() + " - " + (protocolList1.getStatus() ? "ON" : "OFF") + "\n").reduce(toPrint, String::concat);
         toPrint += "==============================\n";
         return toPrint;
     }
     
+    /**
+     * Add New Protocol Status
+     * @param medusaProtocol Protocol to add
+     */
     public void addNewProtocolStatus(String medusaProtocol) {
         Protocol protocol = new Protocol(medusaProtocol);
         protocol.setStatus(true);
@@ -59,6 +59,11 @@ public class Status {
             System.err.println("Two "+medusaProtocol+" are running!");
     }
     
+    /**
+     * ProtocolStatus Setter
+     * @param medusaProtocol Protocol
+     * @param status on/off
+     */
     public void setProtocolStatus(String medusaProtocol, boolean status) {
         Protocol protocol = findProtocolStatus(medusaProtocol);
         if (protocol != null) {
@@ -66,6 +71,11 @@ public class Status {
         }
     }
     
+    /**
+     * Find Protocol Status
+     * @param protocolName Protocol
+     * @return Protocol
+     */
     private Protocol findProtocolStatus(String protocolName) {
         if (protocolList.isEmpty()) return null;
         for (Protocol protocolList1 : protocolList) {
@@ -76,6 +86,10 @@ public class Status {
         return null;
     }
     
+    /**
+     * Add New DataBase Status
+     * @param medusaDB name
+     */
     public void addNewDBStatus(String medusaDB) {
         DataBase db = new DataBase(medusaDB);
         db.setStatus(true);
@@ -85,6 +99,11 @@ public class Status {
             System.err.println("Two "+medusaDB+" are running!");
     }
     
+    /**
+     * DB Status Setter
+     * @param medusaDB name
+     * @param status on/off
+     */
     public void setDBStatus(String medusaDB, boolean status) {
         DataBase db = findDBStatus(medusaDB);
         if (db != null) {
@@ -92,6 +111,11 @@ public class Status {
         }
     }
     
+    /**
+     * Find DB Status
+     * @param dbName to find
+     * @return DB
+     */
     private DataBase findDBStatus(String dbName) {
         if (dbList.isEmpty()) return null;
         for (DataBase dbList1 : dbList) {
@@ -102,6 +126,9 @@ public class Status {
         return null;
     }
     
+    /**
+     * Protocol class definition
+     */
     class Protocol {
         private final String name;
         private boolean status;
@@ -124,6 +151,9 @@ public class Status {
         
     }
     
+    /**
+     * Database class definition
+     */
     class DataBase {
         private final String name;
         private boolean status;

@@ -27,27 +27,28 @@ import com.punyal.medusaserver.core.medusa.Configuration;
 import com.punyal.medusaserver.utils.Packetizer;
 import java.util.EventObject;
 
+/**
+ * RadiusAuthenticationThread
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class RadiusAuthenticationThread extends Thread {
-    private Protocol protocol;
-    private Object responder;
-    private String userName;
-    private String userPass;
-    
-    private RADIUS radiusClient;
-    
-    private EventSource mlistener = new EventSource();
+    private final Protocol protocol;
+    private final Object responder;
+    private final String userName;
+    private final String userPass;
+    private final RADIUS radiusClient;
+    private final EventSource mlistener = new EventSource();
         
     public RadiusAuthenticationThread(Protocol protocol, Object responder, String userName, String userPass) {
         this.protocol = protocol;
         this.responder = responder;
         this.userName = userName;
         this.userPass = userPass;
-        
         radiusClient = new RADIUS();
         radiusClient.setSecretKey(Configuration.RADIUS_SECRET_KEY);
         radiusClient.setServer(Configuration.RADIUS_SERVER_IP, Configuration.RADIUS_SERVER_PORT);
         radiusClient.addListener(new MessageListenerInt() {
-
             @Override
             public void newIncomingMessage(EventObject evt) {
                 RadiusResponse(evt);
@@ -61,6 +62,10 @@ public class RadiusAuthenticationThread extends Thread {
         radiusClient.authenticate(userName, userPass);
     }
     
+    /**
+     * Check a RADIUS Response
+     * @param evt new message event
+     */
     private void RadiusResponse(EventObject evt) {
         EventMedusa newEvt;
         if(((Message)evt.getSource()).response == null){
@@ -81,6 +86,10 @@ public class RadiusAuthenticationThread extends Thread {
         mlistener.newEvent(newEvt);
     }
     
+    /**
+     * Add Listener method
+     * @param listener to add
+     */
     public void addListener(EventMessage listener) {
         mlistener.addEventListener(listener);
     }

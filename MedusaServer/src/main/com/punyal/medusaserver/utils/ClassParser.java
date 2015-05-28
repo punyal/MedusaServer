@@ -26,12 +26,19 @@ import com.punyal.medusaserver.protocols.RADIUS;
 import java.util.EventObject;
 
 /**
- * Class to Convert between different Unit/Object types
+ * ClassParser
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
  */
 public class ClassParser {
-    // Prevent Initialization
+    
     private ClassParser() {}
     
+    /**
+     * Parse a Medusa event as a RADIUS event message
+     * @param eventMessage Medusa message event
+     * @return RADIUS event message
+     */
     public static MessageListenerInt eventMedusa2jRAD (EventMessage eventMessage) {
         MessageListenerInt eventJRaD = new MessageListenerInt() {
 
@@ -59,5 +66,4 @@ public class ClassParser {
         };
         return eventJRaD;
     }
-    
 }

@@ -32,23 +32,21 @@ import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
+/**
+ * CoAPDispatcher
+ * @author Pablo Puñal Pereira {@literal (pablo @ punyal.com)}
+ * @version 0.2
+ */
 public class CoAPDispatcher {
     private CoAPDispatcher() {}
     
+    /**
+     * Dispatch a new CoAP Request
+     * @param coapReq request to dispatch
+     * @param ticketEngine Ticket Engine
+     * @param globalEvent Global Event
+     */
     public static void dispatchRequest(CoapExchange coapReq, TicketEngine ticketEngine, EventMessage globalEvent) {
-        // Checking memory 
-        /*
-        Runtime runtime = Runtime.getRuntime();  
-
-        long maxMemory = runtime.maxMemory();  
-        long allocatedMemory = runtime.totalMemory();  
-        long freeMemory = runtime.freeMemory();  
-
-        System.out.println("free memory: \t\t" + freeMemory / 1024 + 
-                "\nallocated memory: \t" + allocatedMemory / 1024 + 
-                "\nmax memory: \t\t" + maxMemory /1024+
-                "\ntotal free memory: \t" +   
-           (freeMemory + (maxMemory - allocatedMemory)) / 1024);  */
         switch(coapReq.getRequestCode()) {
             case GET: // Request a Authenticator Code
                 System.out.println(new SimpleDateFormat("HH:mm:ss.SSS").format(new Date())+" <- "+coapReq.getRequestText());
@@ -91,6 +89,12 @@ public class CoAPDispatcher {
         }
     }
     
+    /**
+     * Dispatch CoAP Response
+     * @param radRequest RADIUS response
+     * @param coapReq CoAP request
+     * @param ticketEngine Ticket Engine
+     */
     public static void dispatchResponse(Message radRequest, CoapExchange coapReq, TicketEngine ticketEngine) {
         if((Message)radRequest.response == null)
             coapReq.respond(ResponseCode.INTERNAL_SERVER_ERROR, "Timeout");
@@ -98,43 +102,32 @@ public class CoAPDispatcher {
             switch(radRequest.response.getCode()){
                 case ACCESS_ACCEPT:
                     String userName = radRequest.getAttributeByType(USER_NAME).getValueString();
-                    
                     Message radResponse = radRequest.response;
-                    
                     //Check Timeout
                     long timeout;
                     AttributesMessage attSessionTimeout = radResponse.getAttributeByType(SESSION_TIMEOUT);
-                    
                     if (attSessionTimeout == null)
                         timeout = (new Date()).getTime() + GENERIC_TICKET_TIMEOUT;
                     else
                         timeout = (new Date()).getTime() + Long.parseLong(UnitConversion.ByteArray2Hex(attSessionTimeout.getValue()),16);
-                    
-                    
                     String userType;
                     AttributesMessage attFilterID = radResponse.getAttributeByType(FILTER_ID);
                     if (attFilterID == null || attFilterID.getValueString() == null)
                         userType = "computer";
                     else
                         userType = attFilterID.getValueString();
-                    
                     String userInfo = "";
-                    
                     JSONObject json = (JSONObject)JSONValue.parse(coapReq.getRequestText());
                     try {
                         userInfo = (String) json.get(JSON_INFO);
                     } catch(Exception e) {
                         System.err.println("JSON eX "+ e);
                     }
-                    
                     String ticketInfo = ticketEngine.createTicket4User(coapReq.getSourceAddress(), userName, timeout, userType, userInfo, "CoAP");
-                    
-                    
                     if(ticketInfo == null) {
                         coapReq.respond(ResponseCode.INTERNAL_SERVER_ERROR, "Ticket Generation Error");
                     }
                     else {
-                        
                         System.out.println(new SimpleDateFormat("HH:mm:ss.SSS").format(new Date())+" -> "+ticketInfo);
                         coapReq.respond(ticketInfo);
                     } 
